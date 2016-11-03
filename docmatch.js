@@ -4,7 +4,7 @@ var fs = require('fs');
 
 var DocQuery = require('./docquery.js');
 
-var JS_EXT = '.js';
+var JSON_EXT = '.json';
 
 function DocMatch(templatebasepath) {
 
@@ -19,14 +19,14 @@ DocMatch.prototype._prepare = function() {
 	var self = this;
 
 	var templatefiles = fs.readdirSync(self.templatebasepath).filter(function(filename) {
-		return path.extname(filename) === JS_EXT;
+		return path.extname(filename) === JSON_EXT;
 	});
 
 	return Q.all(templatefiles.map(function(filename) {
 
 		return self._parseTemplate(filename)
 		.then(function(template) {
-			var templatekey = path.basename(filename, JS_EXT);
+			var templatekey = path.basename(filename, JSON_EXT);
 			self.templatebase[templatekey] = template;
 		});
 
