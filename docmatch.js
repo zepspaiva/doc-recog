@@ -60,6 +60,22 @@ DocMatch.prototype._parseTemplate = function(filename) {
 
 		return template;
 
+	})
+	.catch(function(err) {
+
+		try {
+			var filepath = path.join(self.templatebasepath, filename);
+			var data = fs.readFileSync(filepath);
+
+			console.log('Could not parse file:', filepath);
+			console.log('Data from file:', data);
+
+			template = JSON.parse(fs.readFileSync(filepath));
+
+		} catch(err) {
+			console.log('PARSE error:', err.stack);
+		}
+
 	});
 
 };
