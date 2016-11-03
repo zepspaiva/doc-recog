@@ -52,9 +52,12 @@ DocMatch.prototype._parseTemplate = function(filename) {
 		var filepath;
 		var filedata;
 
+		if (!fs.existsSync(filepath)) throw new Error('File not found. ' + filepath);
+		if (fs.statSync(filepath)['size'] == 0) throw new Error('File has size 0. ' + filepath);
+
 		try {
 			filepath = path.join(self.templatebasepath, filename);
-			filedata = fs.readFileSync(filepath, 'utf8');
+			filedata = fs.readFileSync(filepath);
 			template = JSON.parse(filedata);
 		} catch (err) {
 			console.log('Error reading JSON template', filename);
