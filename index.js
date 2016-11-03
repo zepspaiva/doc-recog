@@ -1,4 +1,3 @@
-var argv = require('yargs').argv;
 var path = require('path');
 
 var DocData = require('./docdata.js');
@@ -30,7 +29,7 @@ exports.recog = function(templatebasepath, filepath, params) {
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
-		return docmatch.readargs(docdata, templateref, argv)
+		return docmatch.readargs(docdata, templateref, params)
 		.then(function(templateref_) {
 			return templateref_;
 		});
@@ -62,7 +61,7 @@ exports.recog = function(templatebasepath, filepath, params) {
 
 	.catch(function(err) {
 		console.log(err.stack);
-		thor err;
+		throw err;
 	});
   
 }

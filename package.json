@@ -1,12 +1,16 @@
 {
   "name": "doc-recog",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "A document recognition and extraction library that uses pdftotext and tesseract to do document recognition and reading.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "José Augusto Paiva",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zepspaiva/doc-recog.git"
+  },
   "license": "ISC",
   "dependencies": {
     "cheerio": "^0.22.0",
