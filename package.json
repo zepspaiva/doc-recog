@@ -1,12 +1,12 @@
 {
-  "name": "pdf_cv",
-  "version": "1.0.0",
-  "description": "",
-  "main": "pdf_cv.js",
+  "name": "doc-recog",
+  "version": "0.0.1",
+  "description": "A document recognition and extraction library that uses pdftotext and tesseract to do document recognition and reading.",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "José Augusto Paiva",
   "license": "ISC",
   "dependencies": {
     "cheerio": "^0.22.0",
