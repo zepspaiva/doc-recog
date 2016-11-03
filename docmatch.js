@@ -49,13 +49,17 @@ DocMatch.prototype._parseTemplate = function(filename) {
 	.then(function() {
 
 		var template = null;
+		var filepath;
+		var filedata;
 
 		try {
-			var filepath = path.join(self.templatebasepath, filename);
-			template = JSON.parse(fs.readFileSync(filepath));
+			filepath = path.join(self.templatebasepath, filename);
+			filedata = fs.readFileSync(filepath);
+			template = JSON.parse(filedata);
 		} catch (err) {
 			console.log('Error reading JSON template', filename);
 			console.log(err.stack);
+			console.log(filedata);
 		}
 
 		return template;
