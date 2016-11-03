@@ -76,7 +76,8 @@ DocMatch.prototype._parseTemplate = function(filename) {
 			var data = fs.readFileSync(filepath);
 
 			console.log('Could not parse file:', filepath);
-			console.log('Data from file:', data);
+			console.log('Data size:', data.length);
+			console.log('Data from file:', data.toString());
 
 			template = JSON.parse(fs.readFileSync(filepath));
 
