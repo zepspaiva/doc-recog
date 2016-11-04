@@ -5,10 +5,9 @@ var uuid = require('uuid');
 var qr = require('qr-image');
 var exec = require('child-process-promise').exec;
 
-function DocTag(binpath, tmppath) {
+function DocTag(binpath) {
 
 	this.binpath = binpath || '';
-	this.tmppath = tmppath || '';
 
 };
 
@@ -59,10 +58,10 @@ DocTag.prototype._qr = function(filepath, tag) {
 
 	var newfilepathbase = path.join(path.dirname(filepath), uuid.v1());
 
-	var qrepsfilepath = path.join(self.tmppath, newfilepathbase + '.eps');
-	var qrpdffilepath = path.join(self.tmppath, newfilepathbase + '_qr.pdf');
-	var qr2pdffilepath = path.join(self.tmppath, newfilepathbase + '_qr2.pdf');
-	var newpdffilepath = path.join(self.tmppath, newfilepathbase + '.pdf');
+	var qrepsfilepath = newfilepathbase + '.eps';
+	var qrpdffilepath = newfilepathbase + '_qr.pdf';
+	var qr2pdffilepath = newfilepathbase + '_qr2.pdf';
+	var newpdffilepath = newfilepathbase + '.pdf';
 
 	return p
 
