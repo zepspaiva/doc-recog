@@ -5,11 +5,12 @@ var exec = require('child-process-promise').exec;
 var path = require('path');
 var fs = require('fs');
 
-function DocData(filepath, binpath) {
+function DocData(filepath, binpath, tmppath) {
 
 	this.filetype = path.extname(filepath).toLowerCase();
     this.filepath = filepath;
     this.binpath = binpath || '';
+    this.tmppath = tmppath || '';
     this.ready = false;
 
 };
@@ -61,7 +62,7 @@ DocData.prototype._prepare = function() {
 DocData.prototype._readPDF = function() {
 
 	var self = this;
-	var tempfile = uuid.v1();
+	var tempfile = path.join(self.tmppath, uuid.v1());
 
 	return exec([path.join(self.binpath, 'pdftotext'), '-bbox', '"' + self.filepath + '"', tempfile].join(' '))
 	.then(function(result) {
