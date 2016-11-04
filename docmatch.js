@@ -48,41 +48,17 @@ DocMatch.prototype._parseTemplate = function(filename) {
 	return Q()
 	.then(function() {
 
-		var template = null;
-		var filepath;
+		var filepath = path.join(self.templatebasepath, filename);
 
 		if (!fs.existsSync(filepath)) throw new Error('File not found. ' + filepath);
 		if (fs.statSync(filepath)['size'] == 0) throw new Error('File has size 0. ' + filepath);
 
-		try {
-			filepath = path.join(self.templatebasepath, filename);
-			template = JSON.parse(fs.readFileSync(filepath));
-		} catch (err) {
-			console.log('Error reading JSON template', filename);
-			console.log(err.stack);
-		}
-
-		return template;
+		return JSON.parse(fs.readFileSync(filepath));
 
 	})
 	.catch(function(err) {
-
-		console.log('Error:', err.stack);
-
-		try {
-			var filepath = path.join(self.templatebasepath, filename);
-			var data = fs.readFileSync(filepath);
-
-			console.log('Could not parse file:', filepath);
-			console.log('Data size:', data.length);
-			console.log('Data from file:', data.toString());
-
-			template = JSON.parse(fs.readFileSync(filepath));
-
-		} catch(err) {
-			console.log('PARSE error:', err.stack);
-		}
-
+		console.log(err.stack);
+		throw err;
 	});
 
 };
