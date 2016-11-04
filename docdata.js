@@ -62,7 +62,7 @@ DocData.prototype._readPDF = function() {
 	var self = this;
 	var tempfile = uuid.v1();
 
-	return exec(['pdftotext', '-bbox', '"' + self.filepath + '"', tempfile].join(' '))
+	return exec([path.join(__dirname, 'pdftotext'), '-bbox', '"' + self.filepath + '"', tempfile].join(' '))
 	.then(function(result) {
 
 		if (result.exitCode) throw new Error('pdftotext exited with code ' + result.exitCode);
