@@ -1,6 +1,6 @@
 var path = require('path');
 
-var DocData = require('./docdata.js', __dirname);
+var DocData = require('./docdata.js');
 var DocMatch = require('./docmatch.js');
 var DocTag = require('./doctag.js');
 
@@ -12,7 +12,7 @@ exports.recog = function(templatebasepath, filepath, params) {
 	params = params || {};
 
 	var docmatch = new DocMatch(templatebasepath);
-	var docdata = new DocData(filepath);
+	var docdata = new DocData(filepath, __dirname);
 	var doctag = new DocTag();
 
 	// Match templates...
