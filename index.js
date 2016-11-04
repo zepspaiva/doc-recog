@@ -4,7 +4,7 @@ var DocData = require('./docdata.js');
 var DocMatch = require('./docmatch.js');
 var DocTag = require('./doctag.js');
 
-exports.recog = function(templatebasepath, filepath, params) {
+exports.recog = function(templatebasepath, filepath, params, binpath) {
 
 	if (!templatebasepath) throw new Error('No template base path provided.');
 	if (!filepath) throw new Error('No filepath path provided.');
@@ -12,7 +12,7 @@ exports.recog = function(templatebasepath, filepath, params) {
 	params = params || {};
 
 	var docmatch = new DocMatch(templatebasepath);
-	var docdata = new DocData(filepath, __dirname);
+	var docdata = new DocData(filepath, binpath);
 	var doctag = new DocTag();
 
 	// Match templates...
