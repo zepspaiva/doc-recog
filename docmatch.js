@@ -67,6 +67,8 @@ DocMatch.prototype._parseTemplate = function(filename) {
 	})
 	.catch(function(err) {
 
+		console.log('Error:', err.stack);
+
 		try {
 			var filepath = path.join(self.templatebasepath, filename);
 			var data = fs.readFileSync(filepath);
