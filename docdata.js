@@ -5,10 +5,11 @@ var exec = require('child-process-promise').exec;
 var path = require('path');
 var fs = require('fs');
 
-function DocData(filepath) {
+function DocData(filepath, binpath) {
 
 	this.filetype = path.extname(filepath).toLowerCase();
     this.filepath = filepath;
+    this.binpath = binpath || '';
     this.ready = false;
 
 };
@@ -62,7 +63,7 @@ DocData.prototype._readPDF = function() {
 	var self = this;
 	var tempfile = uuid.v1();
 
-	return exec([path.join(__dirname, 'pdftotext'), '-bbox', '"' + self.filepath + '"', tempfile].join(' '))
+	return exec([path.join(self.binpath, 'pdftotext'), '-bbox', '"' + self.filepath + '"', tempfile].join(' '))
 	.then(function(result) {
 
 		if (result.exitCode) throw new Error('pdftotext exited with code ' + result.exitCode);

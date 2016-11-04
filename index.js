@@ -1,6 +1,6 @@
 var path = require('path');
 
-var DocData = require('./docdata.js');
+var DocData = require('./docdata.js', __dirname);
 var DocMatch = require('./docmatch.js');
 var DocTag = require('./doctag.js');
 
