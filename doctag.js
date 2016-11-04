@@ -5,7 +5,9 @@ var uuid = require('uuid');
 var qr = require('qr-image');
 var exec = require('child-process-promise').exec;
 
-function DocTag() {
+function DocTag(binpath) {
+
+	this.binpath = binpath || '';
 
 };
 
@@ -105,11 +107,11 @@ DocTag.prototype._qr = function(filepath, tag) {
 		y = 760 - y*760;
 
 		if (result.exitCode) throw new Error('ps2pdf exited with code ' + result.exitCode);
-		return exec(['gs', '-sDEVICE=pdfwrite', '-o', qr2pdffilepath, '-dPDFSETTINGS=/prepress', '-c', '"<</PageOffset [', x, ' ', y, ']>> setpagedevice"', '-f', qrpdffilepath].join(' '));
+		return exec([path.join(self.binpath, 'gs'), '-sDEVICE=pdfwrite', '-o', qr2pdffilepath, '-dPDFSETTINGS=/prepress', '-c', '"<</PageOffset [', x, ' ', y, ']>> setpagedevice"', '-f', qrpdffilepath].join(' '));
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('gs exited with code ' + result.exitCode);
-		return exec(['pdftk', filepath, 'stamp', qr2pdffilepath, 'output', newpdffilepath].join(' '));
+		return exec([path.join(self.binpath, 'pdftk'), filepath, 'stamp', qr2pdffilepath, 'output', newpdffilepath].join(' '));
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('pdftk exited with code ' + result.exitCode);
