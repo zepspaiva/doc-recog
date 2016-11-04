@@ -55,7 +55,7 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	.then(function(templateref) {
 		return doctag.print(filepath, templateref)
 		.then(function(newfilepath) {
-			return { 'template': templateref, 'newfilepath': newfilepath };
+			return { 'result': templateref, 'newfilepath': newfilepath };
 		});
 	})
 
