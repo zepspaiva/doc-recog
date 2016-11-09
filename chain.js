@@ -198,6 +198,11 @@ var removeNonDigitsFunc = function(data, args, last, context) {
 	return last.replace(/[^0-9]*/gi, '');
 }
 
+var removeTextNonDigitsFunc = function(data, args, last, context) {
+	last['text'] = last['text'].replace(/[^0-9]*/gi, '');
+	return last;
+}
+
 var anyTextFunc = function(data, args, last) {
 
 	if (!Array.isArray(last) || !last.length)
@@ -329,7 +334,9 @@ Chain.methods({
 	below: belowFunc,
 
 	getText: getTextFunc,
-	removeNonDigits: removeNonDigitsFunc
+	removeNonDigits: removeNonDigitsFunc,
+
+	removeTextNonDigits: removeTextNonDigitsFunc
 
 });
 
