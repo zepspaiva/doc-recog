@@ -13,7 +13,7 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	var docmatch = new DocMatch(templatebasepath);
 	var docdata = new DocData(filepath, binpath, tmppath);
-	var doctag = new DocTag(binpath);
+	//var doctag = new DocTag(binpath);
 
 	// Match templates...
 	return docmatch.match(docdata)
@@ -51,13 +51,13 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 		});
 	})
 
-	// Print template tags...
-	.then(function(templateref) {
-		return doctag.print(filepath, templateref)
-		.then(function(newfilepath) {
-			return { 'result': templateref, 'newfilepath': newfilepath };
-		});
-	})
+	// // Print template tags...
+	// .then(function(templateref) {
+	// 	return doctag.print(filepath, templateref)
+	// 	.then(function(newfilepath) {
+	// 		return { 'result': templateref, 'newfilepath': newfilepath };
+	// 	});
+	// })
 
 	.catch(function(err) {
 		console.log(err.stack);
