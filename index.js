@@ -44,12 +44,12 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	})
 
 	// Gen template tags data...
-	.then(function(templateref) {
-		return docmatch.gentags(docdata, templateref)
-		.then(function(templateref_) {
-			return templateref_;
-		});
-	})
+	// .then(function(templateref) {
+	// 	return docmatch.gentags(docdata, templateref)
+	// 	.then(function(templateref_) {
+	// 		return templateref_;
+	// 	});
+	// })
 
 	// // Print template tags...
 	// .then(function(templateref) {
