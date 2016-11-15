@@ -37,11 +37,11 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	// Extract chosen template data...
 	.then(function(templateref) {
-		return docmatch.extract(docdata, templateref)
-		.then(function(templateref_) {
-			return templateref_;
-		});
+		return docmatch.extract(docdata, templateref);
 	})
+	.then(function(templateref) {
+		return { 'result': templateref, 'newfilepath': filepath };
+	});
 
 	// Gen template tags data...
 	// .then(function(templateref) {
