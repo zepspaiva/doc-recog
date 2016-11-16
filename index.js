@@ -67,26 +67,28 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
+		console.log('Got template', templateref);
 		return docmatch.readargs(docdata, templateref, params, argsprofile)
-		.then(function(templateref_) {
-			return templateref_;
-		});
 	})
 
 	// Extract chosen template data...
 	.then(function(templateref) {
+		console.log('Read args', templateref);
 		return docmatch.extract(docdata, templateref);
 	})
 
 	//Gen template tags data...
 	.then(function(templateref) {
+		console.log('Extracted', templateref);
 		return docmatch.gentags(docdata, templateref);
 	})
 
 	// Print template tags...
 	.then(function(templateref) {
+		console.log('Gen tags', templateref);
 		return doctag.print(filepath, templateref)
 		.then(function(newfilepath) {
+			console.log('New file', newfilepath);
 			return { 'result': templateref, 'newfilepath': newfilepath };
 		});
 	})
