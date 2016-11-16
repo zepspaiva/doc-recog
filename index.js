@@ -60,7 +60,7 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	var docmatch = new DocMatch(templatebasepath);
 	var docdata = new DocData(filepath, binpath, tmppath);
-	//var doctag = new DocTag(binpath);
+	var doctag = new DocTag(binpath);
 
 	// Match templates...
 	return docmatch.match(docdata)
