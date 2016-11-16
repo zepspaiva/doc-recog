@@ -86,9 +86,6 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	.then(function(templateref) {
 		return docmatch.extract(docdata, templateref);
 	})
-	.then(function(templateref) {
-		return { 'result': templateref, 'newfilepath': filepath };
-	})
 
 	// Gen template tags data...
 	.then(function(templateref) {
