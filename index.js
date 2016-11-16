@@ -16,30 +16,28 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	var docdata = new DocData(filepath, binpath, tmppath);
 
 	// Match templates...
+	console.log('Will match template');
 	return docmatch.match(docdata)
 
 	// Choose the best template...
 	.then(function(templates) {
 		if (!templates.length) throw new Error('No template found.');
-		
-		// Confiability logic here...
 		return templates[0];
-
 	})
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
-		return docmatch.readargs(docdata, templateref, params, argsprofile)
-		.then(function(templateref_) {
-			return templateref_;
-		});
+		console.log('Matched template', templateref);
+		return docmatch.readargs(docdata, templateref, params, argsprofile);
 	})
 
 	// Extract chosen template data...
 	.then(function(templateref) {
+		console.log('Read args', templateref);
 		return docmatch.extract(docdata, templateref);
 	})
 	.then(function(templateref) {
+		console.log('Extracted data', templateref);
 		return { 'result': templateref, 'newfilepath': filepath };
 	})
 
@@ -55,52 +53,45 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	if (!templatebasepath) throw new Error('No template base path provided.');
 	if (!filepath) throw new Error('No filepath path provided.');
 	
-	var argsprofile = 'tag';
 	params = params || {};
+
+	var argsprofile = 'tag';
+	var templatekey = params['template'];
 
 	var docmatch = new DocMatch(templatebasepath);
 	var docdata = new DocData(filepath, binpath, tmppath);
 	var doctag = new DocTag(binpath);
 
 	// Match templates...
-	return docmatch.match(docdata)
-
-	// Choose the best template...
-	.then(function(templates) {
-		if (!templates.length) throw new Error('No template found.');
-		
-		// Confiability logic here...
-		return templates[0];
-
-	})
+	console.log('Will get template for', templatekey);
+	return docmatch.getTemplate(docdata, templatekey)
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
-		return docmatch.readargs(docdata, templateref, params, argsprofile)
-		.then(function(templateref_) {
-			return templateref_;
-		});
+		console.log('Got template', JSON.stringify(templateref));
+		return docmatch.readargs(docdata, templateref, params, argsprofile);
 	})
 
 	// Extract chosen template data...
 	.then(function(templateref) {
+		console.log('Read args', JSON.stringify(templateref));
 		return docmatch.extract(docdata, templateref);
 	})
 
 	// Gen template tags data...
 	.then(function(templateref) {
-		return docmatch.gentags(docdata, templateref)
-		.then(function(templateref_) {
-			return templateref_;
-		});
+		console.log('Extracted data', JSON.stringify(templateref));
+		return docmatch.gentags(docdata, templateref);
 	})
 
 	// Print template tags...
 	.then(function(templateref) {
-		return doctag.print(filepath, templateref)
-		.then(function(newfilepath) {
-			return { 'result': templateref, 'newfilepath': newfilepath };
-		});
+		console.log('Generated tags', JSON.stringify(templateref));
+		return doctag.print(filepath, templateref);
+	})
+	.then(function(newfilepath) {
+		console.log('Printed tags', JSON.stringify(templateref));
+		return { 'result': templateref, 'newfilepath': newfilepath };
 	})
 
 	.catch(function(err) {
