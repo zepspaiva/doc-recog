@@ -282,45 +282,6 @@ DocMatch.prototype.match = function(docdata) {
 
 };
 
-DocMatch.prototype.getTemplate = function(docdata, templatekey) {
-
-	var self = this;
-	var p = Q();
-
-	if (!self.ready)
-		p = p
-		.then(function() {
-			return self._prepare();
-		});
-
-	return p
-
-	// Look for templates where recognitionrules are true
-	.then(function() {
-
-		var templatesmatches = [];
-		var templatekeys = Object.keys(self.templatebase);
-
-		var template = self.templatebase[templatekey];
-		if (!template) throw new Error(['Template not found:', templatekey].join(' '));
-
-		var context = {};
-
-		return {
-			'name': template['name'],
-			'type': template['type'],
-			'template': template,
-			'context': context
-		};
-
-	})
-
-	.catch(function(err) {
-		console.log(err.stack);
-		throw err;
-	});
-
-};
 
 DocMatch.prototype.readargs = function(docdata, templateref, args, argsprofile) {
 

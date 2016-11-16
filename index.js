@@ -56,15 +56,20 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	params = params || {};
 
 	var argsprofile = 'tag';
-	var templatekey = params['template'];
 
 	var docmatch = new DocMatch(templatebasepath);
 	var docdata = new DocData(filepath, binpath, tmppath);
 	var doctag = new DocTag(binpath);
 
 	// Match templates...
-	console.log('Will get template for', templatekey);
-	return docmatch.getTemplate(docdata, templatekey)
+	console.log('Will match template');
+	return docmatch.match(docdata)
+
+	// Choose the best template...
+	.then(function(templates) {
+		if (!templates.length) throw new Error('No template found.');
+		return templates[0];
+	})
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
