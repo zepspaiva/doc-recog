@@ -101,11 +101,11 @@ DocMatch.prototype._templateMatch = function(docdata, template, context) {
 
 };
 
-DocMatch.prototype._setArgsData = function(docdata, template, context, args) {
+DocMatch.prototype._setArgsData = function(docdata, template, context, args, argsprofile) {
 
 	var p = Q();
 	var data = {};
-	var argumentsrules = template['arguments'];
+	var argumentsrules = template['arguments'][argsprofile];
 
 	if (argumentsrules)
 		p = p
@@ -282,7 +282,47 @@ DocMatch.prototype.match = function(docdata) {
 
 };
 
-DocMatch.prototype.readargs = function(docdata, templateref, args) {
+DocMatch.prototype.getTemplate = function(docdata, templatekey) {
+
+	var self = this;
+	var p = Q();
+
+	if (!self.ready)
+		p = p
+		.then(function() {
+			return self._prepare();
+		});
+
+	return p
+
+	// Look for templates where recognitionrules are true
+	.then(function() {
+
+		var templatesmatches = [];
+		var templatekeys = Object.keys(self.templatebase);
+
+		var template = self.templatebase[templatekey];
+		if (!template) throw new Error(['Template not found:', templatekey].join(' '));
+
+		var context = {};
+
+		return {
+			'name': template['name'],
+			'type': template['type'],
+			'template': template,
+			'context': context
+		};
+
+	})
+
+	.catch(function(err) {
+		console.log(err.stack);
+		throw err;
+	});
+
+};
+
+DocMatch.prototype.readargs = function(docdata, templateref, args, argsprofile) {
 
 	var self = this;
 	var p = Q();
@@ -303,7 +343,7 @@ DocMatch.prototype.readargs = function(docdata, templateref, args) {
 		var template = templateref['template'];
 		var context = templateref['context'];
 
-		return self._setArgsData(docdata, template, context, args)
+		return self._setArgsData(docdata, template, context, args, argsprofile)
 		.then(function(templatedata) {
 			templateref['data'] = templatedata;
 		})
