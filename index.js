@@ -87,11 +87,11 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	// Print template tags...
 	.then(function(templateref) {
 		console.log('Generated tags', JSON.stringify(templateref));
-		return doctag.print(filepath, templateref);
-	})
-	.then(function(newfilepath) {
-		console.log('Printed tags', newfilepath);
-		return { 'result': templateref, 'newfilepath': newfilepath };
+		return doctag.print(filepath, templateref)
+		.then(function(newfilepath) {
+			console.log('Printed tags', newfilepath);
+			return { 'result': templateref, 'newfilepath': newfilepath };
+		});
 	})
 
 	.catch(function(err) {
