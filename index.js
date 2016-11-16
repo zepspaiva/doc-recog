@@ -90,7 +90,7 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 		return doctag.print(filepath, templateref);
 	})
 	.then(function(newfilepath) {
-		console.log('Printed tags', JSON.stringify(templateref));
+		console.log('Printed tags', newfilepath);
 		return { 'result': templateref, 'newfilepath': newfilepath };
 	})
 
