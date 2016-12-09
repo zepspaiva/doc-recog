@@ -5,6 +5,7 @@ var fs = require('fs');
 var DocQuery = require('./docquery.js');
 var DocTable = require('./doctable.js');
 
+var DEBUG = false;
 var JSON_EXT = '.json';
 
 function DocMatch(templatebasepath) {
@@ -177,7 +178,15 @@ DocMatch.prototype._extractionData = function(filepath, docdata, template, conte
 							return new DocTable(filepath, docdata, table, context).run();
 						})
 						.then(function(value) {
-							data[name] = value;
+
+							if (DEBUG) console.log(value);
+
+							var tabledata = value['data'];
+							for (k in tabledata) {
+								var key = [name, k].join('_');
+								data[key] = tabledata[k];
+							}
+							
 						});
 
 					return p;
