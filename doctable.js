@@ -81,7 +81,10 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
 
         var rowxmin = dataarea['xmin'];
         var rowxmax = dataarea['xmax'];
-        var rowmargin = config['margin'] && config['margin']['row'] ? config['margin']['row'] : [0,0,0,0];
+        var rowmargin = config['margins'] && config['margins']['row'] ? config['margins']['row'] : [0,0,0,0];
+
+        console.log(config);
+        console.log('rowmargin', rowmargin);
 
         for (var i = 0; i < markers.length; i++) {
 
