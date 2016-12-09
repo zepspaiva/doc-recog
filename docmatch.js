@@ -59,6 +59,7 @@ DocMatch.prototype._parseTemplate = function(filename) {
 
 	})
 	.catch(function(err) {
+		console.log(filename);
 		console.log(err.stack);
 		throw err;
 	});

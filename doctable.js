@@ -81,6 +81,7 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
 
         var rowxmin = dataarea['xmin'];
         var rowxmax = dataarea['xmax'];
+        var rowmargin = config['margin'] && config['margin']['row'] ? config['margin']['row'] : [0,0,0,0];
 
         for (var i = 0; i < markers.length; i++) {
 
@@ -90,21 +91,21 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
             if (i == 0) {
                 if (ydist > 0.02)
                     rows.push({
-                        'xmin': rowxmin,
-                        'ymin': lastrowymin,
-                        'xmax': rowxmax,
-                        'ymax': marker['ymin']
+                        'xmin': rowxmin + rowmargin[3],
+                        'ymin': lastrowymin + rowmargin[0],
+                        'xmax': rowxmax + rowmargin[1],
+                        'ymax': marker['ymin'] + rowmargin[2]
                     });
             } else {
-                lastrow['ymax'] = marker['ymin'];
+                lastrow['ymax'] = marker['ymin'] + rowmargin[2];
                 rows.push(lastrow);
             }
 
             lastrow = {
                 'text': marker['text'],
-                'xmin': rowxmin,
-                'ymin': marker['ymin']-0.01,
-                'xmax': rowxmax
+                'xmin': rowxmin + rowmargin[3],
+                'ymin': marker['ymin'] + rowmargin[0],
+                'xmax': rowxmax + rowmargin[1]
             };
             
         }
