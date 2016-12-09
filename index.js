@@ -4,6 +4,8 @@ var DocData = require('./docdata.js');
 var DocMatch = require('./docmatch.js');
 var DocTag = require('./doctag.js');
 
+var DEBUG = false;
+
 exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	if (!templatebasepath) throw new Error('No template base path provided.');
@@ -16,7 +18,7 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	var docdata = new DocData(filepath, binpath, tmppath);
 
 	// Match templates...
-	console.log('Will match template');
+	if (DEBUG) console.log('Will match template');
 	return docmatch.match(docdata)
 
 	// Choose the best template...
@@ -27,17 +29,17 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
-		console.log('Matched template', templateref);
+		if (DEBUG) console.log('Matched template', templateref);
 		return docmatch.readargs(docdata, templateref, params, argsprofile);
 	})
 
 	// Extract chosen template data...
 	.then(function(templateref) {
-		console.log('Read args', templateref);
-		return docmatch.extract(docdata, templateref);
+		if (DEBUG) console.log('Read args', templateref);
+		return docmatch.extract(filepath, docdata, templateref);
 	})
 	.then(function(templateref) {
-		console.log('Extracted data', templateref);
+		if (DEBUG) console.log('Extracted data', templateref);
 		return { 'result': templateref, 'newfilepath': filepath };
 	})
 
@@ -62,7 +64,7 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	var doctag = new DocTag(binpath);
 
 	// Match templates...
-	console.log('Will match template');
+	if (DEBUG) console.log('Will match template');
 	return docmatch.match(docdata)
 
 	// Choose the best template...
@@ -73,28 +75,28 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 
 	// Set arguments to chosen template data...
 	.then(function(templateref) {
-		console.log('Got template', JSON.stringify(templateref));
+		if (DEBUG) console.log('Got template', JSON.stringify(templateref));
 		return docmatch.readargs(docdata, templateref, params, argsprofile);
 	})
 
 	// Extract chosen template data...
 	.then(function(templateref) {
-		console.log('Read args', JSON.stringify(templateref));
-		return docmatch.extract(docdata, templateref);
+		if (DEBUG) console.log('Read args', JSON.stringify(templateref));
+		return docmatch.extract(filepath, docdata, templateref);
 	})
 
 	// Gen template tags data...
 	.then(function(templateref) {
-		console.log('Extracted data', JSON.stringify(templateref));
+		if (DEBUG) console.log('Extracted data', JSON.stringify(templateref));
 		return docmatch.gentags(docdata, templateref);
 	})
 
 	// Print template tags...
 	.then(function(templateref) {
-		console.log('Generated tags', JSON.stringify(templateref));
+		if (DEBUG) console.log('Generated tags', JSON.stringify(templateref));
 		return doctag.print(filepath, templateref)
 		.then(function(newfilepath) {
-			console.log('Printed tags', newfilepath);
+			if (DEBUG) console.log('Printed tags', newfilepath);
 			return { 'result': templateref, 'newfilepath': newfilepath };
 		});
 	})

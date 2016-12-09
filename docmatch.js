@@ -3,6 +3,7 @@ var path = require('path');
 var fs = require('fs');
 
 var DocQuery = require('./docquery.js');
+var DocTable = require('./doctable.js');
 
 var JSON_EXT = '.json';
 
@@ -143,7 +144,7 @@ DocMatch.prototype._setArgsData = function(docdata, template, context, args, arg
 
 };
 
-DocMatch.prototype._extractionData = function(docdata, template, context) {
+DocMatch.prototype._extractionData = function(filepath, docdata, template, context) {
 
 	var p = Q();
 	var data = {};
@@ -159,11 +160,21 @@ DocMatch.prototype._extractionData = function(docdata, template, context) {
 					var p = Q();
 					var name = extractionrule['name'];
 					var query = extractionrule['query'];
+					var table = extractionrule['table'];
 
 					if (query)
 						p = p
 						.then(function() {
 							return new DocQuery(docdata, query, context).run();
+						})
+						.then(function(value) {
+							data[name] = value;
+						});
+
+					if (table)
+						p = p
+						.then(function() {
+							return new DocTable(filepath, docdata, table, context).run();
 						})
 						.then(function(value) {
 							data[name] = value;
@@ -282,7 +293,6 @@ DocMatch.prototype.match = function(docdata) {
 
 };
 
-
 DocMatch.prototype.readargs = function(docdata, templateref, args, argsprofile) {
 
 	var self = this;
@@ -321,8 +331,7 @@ DocMatch.prototype.readargs = function(docdata, templateref, args, argsprofile) 
 
 };
 
-
-DocMatch.prototype.extract = function(docdata, templateref) {
+DocMatch.prototype.extract = function(filepath, docdata, templateref) {
 
 	var self = this;
 	var p = Q();
@@ -343,7 +352,7 @@ DocMatch.prototype.extract = function(docdata, templateref) {
 		var template = templateref['template'];
 		var context = templateref['context'];
 
-		return self._extractionData(docdata, template, context)
+		return self._extractionData(filepath, docdata, template, context)
 		.then(function(templatedata) {
 			templateref['data'] = templatedata;
 		})

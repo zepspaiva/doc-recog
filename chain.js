@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 function Chain(d, c) {
 	
 	this.funcs = [];
@@ -223,47 +225,185 @@ var anyTextFunc = function(data, args, last) {
 
 }
 
+var allTextsFunc = function(data, args, last) {
+
+	if (!Array.isArray(last) || !last.length)
+		return false;
+		//throw Chain.StopChainErr;
+
+	var value = args[0];
+	var found = [];
+	var i = 0;
+
+	while (i < last.length) {
+		var word = last[i++];
+		var text = word['text'];
+		if (text === value) found.push(word);
+	}
+
+	return found;
+
+}
+
+var sameLineTextsFunc = function(data, args, last, context) {
+
+	var foundwords = [];
+
+	var lastymin = last['ymin'];
+	var lastymax = last['ymax'];
+	var pagenum = context['pagenum'];
+
+	var words = new Chain(data).getPage(pagenum).done()['words'];
+
+	var samelinefn = function(ymin, ymax) {
+		return (ymin <= lastymin && ymax >= lastymin) ||
+			   (ymin >= lastymin && ymin <= lastymax);
+	}
+
+	for (w in words) {
+		var word = words[w];
+		var wymin = word['ymin'];
+		var wymax = word['ymax'];
+
+		if (samelinefn(wymin, wymax)) foundwords.push(word);
+	}
+
+	if (!foundwords.length) throw Chain.StopChainErr;
+
+	foundwords.sort(function(a, b) {
+
+		var x1 = a['xmin'];
+		var x2 = b['xmin'];
+
+		if (x1 < x2)
+			return -1;
+		else if (x1 > x2)
+			return 1;
+		else
+			return 0;
+
+	});
+
+	return foundwords;
+
+}
+
+var concatTextsFunc = function(data, args, last) {
+
+	var xmin = -1;
+	var ymin = -1;
+	var xmax = -1;
+	var ymax = -1;
+	var text = '';
+
+	if (!Array.isArray(last)) last = [last];
+
+	last.sort(function(a, b) {
+		var ax = a['xmin'];
+		var ay = a['ymin'];
+		var bx = b['xmin'];
+		var by = b['ymin'];
+
+		if (ay < by)
+			return -1;
+		else if (ay > by)
+			return 1;
+		else if (ax < bx)
+			return -1;
+		else if (ax > bx)
+			return 1;
+		else
+			return 0;
+
+	});
+
+	last.forEach(function(word) {
+		xmin = xmin == -1 ? word['xmin'] : word['xmin'] < xmin ? word['xmin'] : xmin;
+		ymin = ymin == -1 ? word['ymin'] : word['ymin'] < ymin ? word['ymin'] : ymin;
+		xmax = xmax == -1 ? word['xmax'] : word['xmax'] > xmax ? word['xmax'] : xmax;
+		ymax = ymax == -1 ? word['ymax'] : word['ymax'] > ymax ? word['ymax'] : ymax;
+		text = text ? [text, word['text']].join(' ') : word['text'];
+	});
+
+	return {
+		'xmin': xmin,
+		'ymin': ymin,
+		'xmax': xmax,
+		'ymax': ymax,
+		'text': text
+	};
+
+}
+
 var notFunc = function(data, args, last) {
 
 	return !last;
 
 }
 
+var firstFunc = function(data, args, last) {
+
+	return last[0];
+
+}
+
 var rightFunc = function(data, args, last, context) {
 
-	var xmax = last['xmax'];
-	var ymax = last['ymax'];
-	var pagenum = context['pagenum'];
+	if (!Array.isArray(last)) last = [last];
 
 	var foundwords = [];
-	var words = new Chain(data).getPage(pagenum).done()['words'];
 
-	var rightfn = function(x, y) {
-		return x >= xmax;
-	}
+	last.forEach(function(keyword) {
 
-	for (w in words) {
-		var word = words[w];
-		var wxmin = word['xmin'];
-		var wymax = word['ymax'];
+		var xmax = keyword['xmax'];
+		var ymax = keyword['ymax'];
+		var ymin = keyword['ymin'];
+		var ymed = (ymax - ymin)/2 + ymin;
+		var pagenum = context['pagenum'];
 
-		if (rightfn(wxmin, wymax)) foundwords.push(word);
-	}
+		var words = new Chain(data).getPage(pagenum).done()['words'];
+
+		var rightfn = function(x, y) {
+			return x >= xmax;
+		}
+
+		for (w in words) {
+			var word = words[w];
+			var wxmin = word['xmin'];
+			var wymax = word['ymax'];
+
+			if (rightfn(wxmin, wymax)) foundwords.push(word);
+		}
+
+		foundwords.sort(function(a, b) {
+
+			var x1 = a['xmin'];
+			var y1 = (a['ymax']-a['ymin'])/2 + a['ymin'];
+			var x2 = b['xmin'];
+			var y2 = (b['ymax']-b['ymin'])/2 + b['ymin'];
+
+			var d1 = Math.sqrt((xmax-x1)*(xmax-x1) + (ymed-y1)*(ymed-y1));
+			var d2 = Math.sqrt((xmax-x2)*(xmax-x2) + (ymed-y2)*(ymed-y2));
+
+			if (d1 < d2)
+				return -1;
+			else if (d1 > d2)
+				return 1;
+			else
+				return 0;
+
+		});
+
+	});
 
 	if (!foundwords.length) throw Chain.StopChainErr;
 
-	foundwords.sort(function(a, b) {
-		var aydiff = a['ymin'] - ymax;
-		var bydiff = b['ymin'] - ymax;
-		if (aydiff < bydiff)
-			return -1;
-		else if (aydiff > bydiff)
-			return 1;
-		else
-			return 0;
-	});
+	// Remove duplicates
+	foundwords = _.uniq(foundwords, function(w) {
+		return [w['text'], w['xmin'], w['ymin'], w['xmax'], w['ymax']].join('-');
+	})
 
-	return foundwords[0];
+	return foundwords;
 
 }
 
@@ -307,7 +447,54 @@ var belowFunc = function(data, args, last, context) {
 			return 0;
 	});
 
-	return foundwords[0];
+	return foundwords;
+
+}
+
+var insideFunc = function(data, args, last, context) {
+
+	if (!args.length) throw Chain.StopChainErr;
+
+	var area = args[0];
+
+	var xmin = area['xmin'];
+	var ymin = area['ymin'];
+	var xmax = area['xmax'];
+	var ymax = area['ymax'];
+	var pagenum = context['pagenum'];
+
+	var foundwords = [];
+
+	var insidefn = function(wxmin, wymin, wxmax, wymax) {
+		return wxmin >= xmin &&
+			   wymin >= ymin &&
+			   wxmax <= xmax &&
+			   wymax <= ymax;	
+	}
+
+	for (w in last) {
+		var word = last[w];
+		var wxmin = word['xmin'];
+		var wymin = word['ymin'];
+		var wxmax = word['xmax'];
+		var wymax = word['ymax'];
+
+		if (insidefn(wxmin, wymin, wxmax, wymax)) foundwords.push(word);
+	}
+
+	foundwords.sort(function(a, b) {
+		var aymin = a['ymin'];
+		var bymin = b['ymin'];
+
+		if (aymin < bymin)
+			return -1;
+		else if (aymin > bymin)
+			return 1;
+		else
+			return 0;
+	});
+
+	return foundwords;
 
 }
 
@@ -329,9 +516,15 @@ Chain.methods({
 	getWords: getWordsFunc,
 	locate: locateFunc,
 	anyText: anyTextFunc,
+	allTexts: allTextsFunc,
+	sameLineTexts: sameLineTextsFunc,
+	concatTexts: concatTextsFunc,
 
 	right: rightFunc,
 	below: belowFunc,
+	inside: insideFunc,
+
+	first: firstFunc,
 
 	getText: getTextFunc,
 	removeNonDigits: removeNonDigitsFunc,
