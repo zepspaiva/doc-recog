@@ -181,7 +181,7 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                             'ymin': cell['ymin'],
                             'xmax': cell['xmax'],
                             'ymax': cell['ymax']
-                        }).done() > 0.6 ? 'N/A' : 'No';
+                        }).done() > 0.4 ? 'N/A' : 'No';
                         break;
 
                     default:

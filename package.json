@@ -1,6 +1,6 @@
 {
   "name": "doc-recog",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "A document recognition and extraction library that uses pdftotext and tesseract to perform document recognition and reading.",
   "main": "index.js",
   "scripts": {
