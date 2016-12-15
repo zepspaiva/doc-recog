@@ -3,12 +3,13 @@ var Q = require('q');
 var Chain = require('./chain.js');
 var DocQuery = require('./docquery.js');
 
-function DocTable(filepath, docdata, config, context) {
+function DocTable(filepath, docdata, config, context, tempdirpath) {
 
     this.filepath = filepath;
     this.docdata = docdata;
     this.config = config;
     this.context = context || {};
+    this.tempdirpath = tempdirpath;
 
 };
 
@@ -175,6 +176,7 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                     case 'graylevel':
                         cell['text'] = c.getPage(pagenum).cropGrayLevel({
                             'filepath': self.filepath,
+                            'tmpdir': self.tempdirpath,
                             'xmin': cell['xmin'],
                             'ymin': cell['ymin'],
                             'xmax': cell['xmax'],

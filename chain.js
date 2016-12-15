@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var fs = require('fs');
+var path = require('path');
 var im = require('imagemagick');
 var uuid = require('uuid');
 var deasync = require("deasync");
@@ -512,7 +513,7 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 		
 		if (!params.pngfilepath) {
 
-			params.pngfilepath = ['temp/', uuid.v1(), '.png'].join('');
+			params.pngfilepath = path.join(params.tmpdir, uuid.v1() + '.png');
 			context.tempfiles = context.tempfiles || {};
 			context.tempfiles['pngfile_' + params.pagenum] = params.pngfilepath;
 
