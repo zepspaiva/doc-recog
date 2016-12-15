@@ -8,9 +8,10 @@ var DocTable = require('./doctable.js');
 var DEBUG = false;
 var JSON_EXT = '.json';
 
-function DocMatch(templatebasepath) {
+function DocMatch(templatebasepath, tempdirpath) {
 
     this.templatebasepath = templatebasepath;
+    this.tempdirpath = tempdirpath;
     this.templatebase = {};
     this.ready = false;
 
@@ -148,6 +149,7 @@ DocMatch.prototype._setArgsData = function(docdata, template, context, args, arg
 
 DocMatch.prototype._extractionData = function(filepath, docdata, template, context) {
 
+	var self = this;
 	var p = Q();
 	var data = {};
 	var extractionrules = template['extraction'];
@@ -176,7 +178,7 @@ DocMatch.prototype._extractionData = function(filepath, docdata, template, conte
 					if (table)
 						p = p
 						.then(function() {
-							return new DocTable(filepath, docdata, table, context).run();
+							return new DocTable(filepath, docdata, table, context, self.tempdirpath).run();
 						})
 						.then(function(value) {
 

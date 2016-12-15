@@ -15,10 +15,10 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	var argsprofile = 'recog';
 	params = params || {};
 
-	var tempfolderpath = params.tempdir || 'temp';
+	var tempfolderpath = tmppath || 'temp';
 	fs.mkdirsSync(tempfolderpath);
 
-	var docmatch = new DocMatch(templatebasepath);
+	var docmatch = new DocMatch(templatebasepath, tempfolderpath);
 	var docdata = new DocData(filepath, binpath, tmppath);
 
 	// Match templates...
@@ -63,12 +63,12 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	
 	params = params || {};
 
-	var tempfolderpath = params.tempdir || 'temp';
+	var tempfolderpath = tmppath || 'temp';
 	fs.mkdirsSync(tempfolderpath);
 
 	var argsprofile = 'tag';
 
-	var docmatch = new DocMatch(templatebasepath);
+	var docmatch = new DocMatch(templatebasepath, tempfolderpath);
 	var docdata = new DocData(filepath, binpath, tmppath);
 	var doctag = new DocTag(binpath);
 
