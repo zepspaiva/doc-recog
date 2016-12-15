@@ -15,7 +15,7 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	var argsprofile = 'recog';
 	params = params || {};
 
-	var tempfolderpath = tmppath || 'temp';
+	var tempfolderpath = path.join(tmppath, 'tempfiles');
 	fs.mkdirsSync(tempfolderpath);
 
 	var docmatch = new DocMatch(templatebasepath, tempfolderpath);
@@ -63,7 +63,7 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	
 	params = params || {};
 
-	var tempfolderpath = tmppath || 'temp';
+	var tempfolderpath = path.join(tmppath, 'tempfiles');
 	fs.mkdirsSync(tempfolderpath);
 
 	var argsprofile = 'tag';
