@@ -535,7 +535,11 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 
 	});
 
-	return getGrayLevel(params);
+	var result = getGrayLevel(params);
+
+	console.log('GRAY LEVEL>', result);
+
+	return result;
 
 }
 
