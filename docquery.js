@@ -47,8 +47,6 @@ DocQuery.prototype.run = function() {
 	            var value = func(value, data, expr, c);
 	            if (value == undefined) value = '';
 
-	            //console.log('Running', self.query, value);
-
 	            callback(null, value);
 
 	        } catch (err) {

@@ -83,8 +83,14 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
         var rowxmax = dataarea['xmax'];
         var rowmargin = config['margins'] && config['margins']['row'] ? config['margins']['row'] : [0,0,0,0];
 
-        console.log(config);
-        console.log('rowmargin', rowmargin);
+        // no empty table!
+        if (!markers.length)
+            rows.push({
+                'xmin': rowxmin + rowmargin[3],
+                'ymin': dataarea['ymin'] + rowmargin[0],
+                'xmax': rowxmax + rowmargin[1],
+                'ymax': dataarea['ymax'] + rowmargin[2]
+            });
 
         for (var i = 0; i < markers.length; i++) {
 
@@ -164,12 +170,27 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                     'ymax': row['ymax']
                 };
 
-                cell['text'] = c.getPage(pagenum).getWords().inside({
-                    'xmin': cell['xmin'],
-                    'ymin': cell['ymin'],
-                    'xmax': cell['xmax'],
-                    'ymax': cell['ymax']
-                }).concatTexts().getText().done();
+                switch (column['value']) {
+
+                    case 'graylevel':
+                        cell['text'] = c.getPage(pagenum).cropGrayLevel({
+                            'filepath': self.filepath,
+                            'xmin': cell['xmin'],
+                            'ymin': cell['ymin'],
+                            'xmax': cell['xmax'],
+                            'ymax': cell['ymax']
+                        }).done() > 0.6 ? 'N/A' : 'No';
+                        break;
+
+                    default:
+                        cell['text'] = c.getPage(pagenum).getWords().inside({
+                            'xmin': cell['xmin'],
+                            'ymin': cell['ymin'],
+                            'xmax': cell['xmax'],
+                            'ymax': cell['ymax']
+                        }).concatTexts().getText().done();
+
+                }
 
                 cells.push(cell);
                 curcellxmin = cellxmax;

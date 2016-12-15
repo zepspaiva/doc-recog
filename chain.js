@@ -1,4 +1,8 @@
 var _ = require('underscore');
+var fs = require('fs');
+var im = require('imagemagick');
+var uuid = require('uuid');
+var deasync = require("deasync");
 
 function Chain(d, c) {
 	
@@ -451,6 +455,89 @@ var belowFunc = function(data, args, last, context) {
 
 }
 
+var cropGrayLevelFunc = function(data, args, last, context) {
+
+	var params = args[0];
+	params.pagenum = context['pagenum'] - 1 || 0;
+	
+	var getGrayLevel = deasync(function(params, cb) {
+
+		var calcGrayLevelFn = function(params, features, cb) {
+
+			var width = features.width;
+			var height = features.height;
+
+			var xmin = params.xmin * width;
+			var xmax = params.xmax * width;
+			var ymin = params.ymin * height;
+			var ymax = params.ymax * height;
+
+			var cropwidth = xmax - xmin;
+			var cropheight = ymax - ymin;
+
+			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
+
+			im.convert(cropgraylevelparams, function(err, stdout) {
+				if (err) { return cb(err); }
+
+				try {
+					cb(null, parseFloat(stdout.replace(/\"/, '')));
+				} catch (err) {
+					cb(err);
+				}
+
+			});
+
+		};
+
+		var genPngFn = function(params, cb) {
+
+			var pdftopngparams = [params.filepath + '[' + params.pagenum + ']', '-density', '72', params.pngfilepath];
+
+			im.convert(pdftopngparams, function(err, stdout) {
+				if (err) { return cb(err); }
+				
+				im.identify(params.pngfilepath, function(err, features) {
+					if (err) { return cb(err); }
+
+					cb(null, features);
+
+				});
+
+			});
+
+		};
+
+		params.pngfilepath = context.tempfiles ? context.tempfiles['pngfile_' + params.pagenum] : null;
+		
+		if (!params.pngfilepath) {
+
+			params.pngfilepath = ['temp/', uuid.v1(), '.png'].join('');
+			context.tempfiles = context.tempfiles || {};
+			context.tempfiles['pngfile_' + params.pagenum] = params.pngfilepath;
+
+			genPngFn(params, function(err, features) {
+				if (err) { console.log(err.stack); throw Chain.StopChainErr; }
+
+				context.tempfiles['pngfile_features_' + params.pagenum] = features;
+
+				calcGrayLevelFn(params, features, cb);
+
+			})
+
+		} else {
+
+			var features = context.tempfiles['pngfile_features_' + params.pagenum];
+			calcGrayLevelFn(params, features, cb);
+
+		}
+
+	});
+
+	return getGrayLevel(params);
+
+}
+
 var insideFunc = function(data, args, last, context) {
 
 	if (!args.length) throw Chain.StopChainErr;
@@ -498,8 +585,6 @@ var insideFunc = function(data, args, last, context) {
 
 }
 
-// ===
-
 Chain.methods({
 
 	new: newFunc,
@@ -519,6 +604,8 @@ Chain.methods({
 	allTexts: allTextsFunc,
 	sameLineTexts: sameLineTextsFunc,
 	concatTexts: concatTextsFunc,
+
+	cropGrayLevel: cropGrayLevelFunc,
 
 	right: rightFunc,
 	below: belowFunc,

@@ -1,4 +1,5 @@
 var path = require('path');
+var fs = require('fs-extra')
 
 var DocData = require('./docdata.js');
 var DocMatch = require('./docmatch.js');
@@ -13,6 +14,9 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	
 	var argsprofile = 'recog';
 	params = params || {};
+
+	var tempfolderpath = params.tempdir || 'temp';
+	fs.mkdirsSync(tempfolderpath);
 
 	var docmatch = new DocMatch(templatebasepath);
 	var docdata = new DocData(filepath, binpath, tmppath);
@@ -40,11 +44,13 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 	})
 	.then(function(templateref) {
 		if (DEBUG) console.log('Extracted data', templateref);
+		fs.removeSync(tempfolderpath);
 		return { 'result': templateref, 'newfilepath': filepath };
 	})
 
 	.catch(function(err) {
 		console.log(err.stack);
+		fs.removeSync(tempfolderpath);
 		throw err;
 	});
   
@@ -56,6 +62,9 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 	if (!filepath) throw new Error('No filepath path provided.');
 	
 	params = params || {};
+
+	var tempfolderpath = params.tempdir || 'temp';
+	fs.mkdirsSync(tempfolderpath);
 
 	var argsprofile = 'tag';
 
@@ -97,12 +106,14 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 		return doctag.print(filepath, templateref)
 		.then(function(newfilepath) {
 			if (DEBUG) console.log('Printed tags', newfilepath);
+			fs.removeSync(tempfolderpath);
 			return { 'result': templateref, 'newfilepath': newfilepath };
 		});
 	})
 
 	.catch(function(err) {
 		console.log(err.stack);
+		fs.removeSync(tempfolderpath);
 		throw err;
 	});
   
