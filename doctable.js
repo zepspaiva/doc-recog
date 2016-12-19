@@ -102,7 +102,7 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
                 if (ydist > 0.02)
                     rows.push({
                         'xmin': rowxmin + rowmargin[3],
-                        'ymin': lastrowymin + rowmargin[0],
+                        'ymin': lastrowymin,// + rowmargin[0],
                         'xmax': rowxmax + rowmargin[1],
                         'ymax': marker['ymin'] + rowmargin[2]
                     });
