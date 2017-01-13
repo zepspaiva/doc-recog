@@ -1,0 +1,1 @@
+node prompt.js --filepath $1

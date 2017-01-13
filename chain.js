@@ -52,10 +52,14 @@ Chain.prototype.done = function() {
     		return chainItem.func(self.data, chainItem.args, last, context);
     	}, last);
 
+    	delete context['words'];
+
     } catch(err) {
     	if (err != Chain.StopChainErr) {
     		console.log('Chain ERR:', err);
+    		console.log(err.stack);
     	}
+    	delete context['words'];
 	}
     
    	this.funcs = []
@@ -94,13 +98,13 @@ Chain.register = function(method, body) {
 
 // ===
 
-var newFunc = function(data, args, last) {
+var newFunc = function(data, args, last, context) {
 	
 	return new Chain(data);
 
 }
 
-var logFunc = function(data, args, last) {
+var logFunc = function(data, args, last, context) {
 
 	console.log(last);
 	return last;
@@ -144,7 +148,7 @@ var appendContextVarFunc = function(data, args, last, context) {
 
 };
 
-var locateFunc = function(data, args, last) {
+var locateFunc = function(data, args, last, context) {
 
 	var foundwords = [];
 	var words = last;
@@ -169,6 +173,7 @@ var locateFunc = function(data, args, last) {
 		if (locatefn(wxmin, wymin)) foundwords.push(word);
 	}
 
+	context['words'] = foundwords;
 	return foundwords;
 
 };
@@ -192,10 +197,26 @@ var getPageFunc = function(data, args, last, context) {
 
 var getWordsFunc = function(data, args, last, context) {
 
-	if (!last['words']) throw Chain.StopChainErr;
-	return last['words'];
+	var pagenum = context['pagenum'];
+	var words = new Chain(data).getPage(pagenum).done()['words'];
+
+	context['words'] = words;
+	return words;
+
+	// if (!last['words']) throw Chain.StopChainErr;
+	// return last['words'];
 
 };
+
+var clearContextWordsFunc = function(data, args, last, context) {
+
+	var pagenum = context['pagenum'];
+	var words = new Chain(data).getPage(pagenum).done()['words'];
+
+	context['words'] = words;
+	return last;
+
+}
 
 var getTextFunc = function(data, args, last, context) {
 	return last['text'];
@@ -210,7 +231,7 @@ var removeTextNonDigitsFunc = function(data, args, last, context) {
 	return last;
 }
 
-var anyTextFunc = function(data, args, last) {
+var anyTextFunc = function(data, args, last, context) {
 
 	if (!Array.isArray(last) || !last.length)
 		return false;
@@ -230,18 +251,16 @@ var anyTextFunc = function(data, args, last) {
 
 }
 
-var allTextsFunc = function(data, args, last) {
+var allTextsFunc = function(data, args, last, context) {
 
-	if (!Array.isArray(last) || !last.length)
-		return false;
-		//throw Chain.StopChainErr;
+	var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
 
 	var value = args[0];
 	var found = [];
 	var i = 0;
 
-	while (i < last.length) {
-		var word = last[i++];
+	while (i < words.length) {
+		var word = words[i++];
 		var text = word['text'];
 		if (text === value) found.push(word);
 	}
@@ -289,11 +308,12 @@ var sameLineTextsFunc = function(data, args, last, context) {
 
 	});
 
+	context['words'] = foundwords;
 	return foundwords;
 
 }
 
-var concatTextsFunc = function(data, args, last) {
+var concatTextsFunc = function(data, args, last, context) {
 
 	var xmin = -1;
 	var ymin = -1;
@@ -322,33 +342,104 @@ var concatTextsFunc = function(data, args, last) {
 
 	});
 
+	var lastword = null;
 	last.forEach(function(word) {
 		xmin = xmin == -1 ? word['xmin'] : word['xmin'] < xmin ? word['xmin'] : xmin;
 		ymin = ymin == -1 ? word['ymin'] : word['ymin'] < ymin ? word['ymin'] : ymin;
 		xmax = xmax == -1 ? word['xmax'] : word['xmax'] > xmax ? word['xmax'] : xmax;
 		ymax = ymax == -1 ? word['ymax'] : word['ymax'] > ymax ? word['ymax'] : ymax;
+		
+		if (lastword && lastword['ymax'] < word['ymin']) text += '\n';
+
 		text = text ? [text, word['text']].join(' ') : word['text'];
+		lastword = word;
 	});
 
+	var xcenter = (xmax-xmin)/2 + xmin;
+	var ycenter = (ymax-ymin)/2 + ymin;
+
 	return {
+		'text': text,
 		'xmin': xmin,
 		'ymin': ymin,
 		'xmax': xmax,
 		'ymax': ymax,
-		'text': text
+		'xcenter': xcenter,
+		'ycenter': ycenter
 	};
 
 }
 
-var notFunc = function(data, args, last) {
+var notFunc = function(data, args, last, context) {
 
 	return !last;
 
 }
 
-var firstFunc = function(data, args, last) {
+var firstFunc = function(data, args, last, context) {
 
 	return last[0];
+
+}
+
+var rightFromLeftFunc = function(data, args, last, context) {
+
+	if (!Array.isArray(last)) last = [last];
+
+	var foundwords = [];
+
+	last.forEach(function(keyword) {
+
+		var xmin = keyword['xmin'];
+		var xmax = keyword['xmax'];
+		var ymax = keyword['ymax'];
+		var ymin = keyword['ymin'];
+		var ymed = (ymax - ymin)/2 + ymin;
+		var pagenum = context['pagenum'];
+		var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
+
+		var rightfn = function(x, y) {
+			return x >= xmin;
+		}
+
+		for (w in words) {
+			var word = words[w];
+			var wxmin = word['xmin'];
+			var wymax = word['ymax'];
+
+			if (rightfn(wxmin, wymax)) foundwords.push(word);
+		}
+
+		foundwords.sort(function(a, b) {
+
+			var x1 = a['xmin'];
+			var y1 = (a['ymax']-a['ymin'])/2 + a['ymin'];
+			var x2 = b['xmin'];
+			var y2 = (b['ymax']-b['ymin'])/2 + b['ymin'];
+
+			var d1 = Math.sqrt((xmax-x1)*(xmax-x1) + (ymed-y1)*(ymed-y1));
+			var d2 = Math.sqrt((xmax-x2)*(xmax-x2) + (ymed-y2)*(ymed-y2));
+
+			if (d1 < d2)
+				return -1;
+			else if (d1 > d2)
+				return 1;
+			else
+				return 0;
+
+		});
+
+	});
+
+	if (!foundwords.length) throw Chain.StopChainErr;
+
+	// Remove duplicates
+	foundwords = _.uniq(foundwords, function(w) {
+		return [w['text'], w['xmin'], w['ymin'], w['xmax'], w['ymax']].join('-');
+	});
+
+	context['words'] = foundwords;
+	return foundwords;
 
 }
 
@@ -365,8 +456,7 @@ var rightFunc = function(data, args, last, context) {
 		var ymin = keyword['ymin'];
 		var ymed = (ymax - ymin)/2 + ymin;
 		var pagenum = context['pagenum'];
-
-		var words = new Chain(data).getPage(pagenum).done()['words'];
+		var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
 
 		var rightfn = function(x, y) {
 			return x >= xmax;
@@ -406,8 +496,69 @@ var rightFunc = function(data, args, last, context) {
 	// Remove duplicates
 	foundwords = _.uniq(foundwords, function(w) {
 		return [w['text'], w['xmin'], w['ymin'], w['xmax'], w['ymax']].join('-');
-	})
+	});
 
+	context['words'] = foundwords;
+	return foundwords;
+
+}
+
+var leftFunc = function(data, args, last, context) {
+
+	if (!Array.isArray(last)) last = [last];
+
+	var foundwords = [];
+
+	last.forEach(function(keyword) {
+
+		var xmin = keyword['xmin'];
+		var xmax = keyword['xmax'];
+		var ymax = keyword['ymax'];
+		var ymin = keyword['ymin'];
+		var ymed = (ymax - ymin)/2 + ymin;
+		var pagenum = context['pagenum'];
+		var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
+
+		var rightfn = function(x) {
+			return x <= xmin;
+		}
+
+		for (w in words) {
+			var word = words[w];
+			var wxmax = word['xmax'];
+
+			if (rightfn(wxmax)) foundwords.push(word);
+		}
+
+		foundwords.sort(function(a, b) {
+
+			var x1 = a['xmin'];
+			var y1 = (a['ymax']-a['ymin'])/2 + a['ymin'];
+			var x2 = b['xmin'];
+			var y2 = (b['ymax']-b['ymin'])/2 + b['ymin'];
+
+			var d1 = Math.sqrt((xmax-x1)*(xmax-x1) + (ymed-y1)*(ymed-y1));
+			var d2 = Math.sqrt((xmax-x2)*(xmax-x2) + (ymed-y2)*(ymed-y2));
+
+			if (d1 < d2)
+				return -1;
+			else if (d1 > d2)
+				return 1;
+			else
+				return 0;
+
+		});
+
+	});
+
+	if (!foundwords.length) throw Chain.StopChainErr;
+
+	// Remove duplicates
+	foundwords = _.uniq(foundwords, function(w) {
+		return [w['text'], w['xmin'], w['ymin'], w['xmax'], w['ymax']].join('-');
+	});
+
+	context['words'] = foundwords;
 	return foundwords;
 
 }
@@ -419,10 +570,10 @@ var belowFunc = function(data, args, last, context) {
 	var pagenum = context['pagenum'];
 
 	var foundwords = [];
-	var words = new Chain(data).getPage(pagenum).done()['words'];
+	var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
 
 	var belowfn = function(wxmin, wymin) {
-		return wymin >= ymax;
+		return wymin > ymax;
 	}
 
 	for (w in words) {
@@ -452,6 +603,52 @@ var belowFunc = function(data, args, last, context) {
 			return 0;
 	});
 
+	context['words'] = foundwords;
+	return foundwords;
+
+}
+
+var aboveFunc = function(data, args, last, context) {
+
+	var xmin = last['xmin'];
+	var ymax = last['ymax'];
+	var pagenum = context['pagenum'];
+
+	var foundwords = [];
+	var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
+
+	var abovefn = function(wxmin, wymax) {
+		return wymax < ymax;
+	}
+
+	for (w in words) {
+		var word = words[w];
+		var wxmin = word['xmin'];
+		var wymax = word['ymax'];
+
+		if (abovefn(wxmin, wymax)) foundwords.push(word);
+	}
+
+	if (!foundwords.length) throw Chain.StopChainErr;
+
+	var distfn = function(x1, y1, x2, y2) {
+		var a = x1 - x2
+		var b = y1 - y2
+		return Math.sqrt(a*a + b*b);
+	}
+
+	foundwords.sort(function(a, b) {
+		var adist = distfn(a['xmin'], a['ymax'], xmin, ymax);
+		var bdist = distfn(b['xmin'], b['ymax'], xmin, ymax);
+		if (adist < bdist)
+			return -1;
+		else if (adist > bdist)
+			return 1;
+		else
+			return 0;
+	});
+
+	context['words'] = foundwords;
 	return foundwords;
 
 }
@@ -535,11 +732,7 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 
 	});
 
-	var result = getGrayLevel(params);
-
-	console.log('GRAY LEVEL>', result);
-
-	return result;
+	return getGrayLevel(params);
 
 }
 
@@ -554,6 +747,7 @@ var insideFunc = function(data, args, last, context) {
 	var xmax = area['xmax'];
 	var ymax = area['ymax'];
 	var pagenum = context['pagenum'];
+	var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
 
 	var foundwords = [];
 
@@ -564,8 +758,8 @@ var insideFunc = function(data, args, last, context) {
 			   wymax <= ymax;	
 	}
 
-	for (w in last) {
-		var word = last[w];
+	for (w in words) {
+		var word = words[w];
 		var wxmin = word['xmin'];
 		var wymin = word['ymin'];
 		var wxmax = word['xmax'];
@@ -586,6 +780,7 @@ var insideFunc = function(data, args, last, context) {
 			return 0;
 	});
 
+	context['words'] = foundwords;
 	return foundwords;
 
 }
@@ -604,6 +799,7 @@ Chain.methods({
 
 	getPage: getPageFunc,
 	getWords: getWordsFunc,
+	clearContextWords: clearContextWordsFunc,
 	locate: locateFunc,
 	anyText: anyTextFunc,
 	allTexts: allTextsFunc,
@@ -612,8 +808,11 @@ Chain.methods({
 
 	cropGrayLevel: cropGrayLevelFunc,
 
-	right: rightFunc,
+	above: aboveFunc,
 	below: belowFunc,
+	left: leftFunc,
+	right: rightFunc,
+	rightfromleft: rightFromLeftFunc,
 	inside: insideFunc,
 
 	first: firstFunc,

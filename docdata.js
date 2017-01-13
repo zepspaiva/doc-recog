@@ -91,14 +91,21 @@ DocData.prototype._readPDF = function() {
 		    $p.find('word').each(function(i, w) {
 
 		    	var $w = $(w);
+		    	var xmin = parseFloat($w.attr('xmin')) / pagewidth;
+		    	var ymin = parseFloat($w.attr('ymin')) / pageheight;
+		    	var xmax = parseFloat($w.attr('xmax')) / pagewidth;
+		    	var ymax = parseFloat($w.attr('ymax')) / pageheight;
+		    	var xcenter = (xmax-xmin)/2 + xmin;
+		    	var ycenter = (ymax-ymin)/2 + ymin;
+
 		    	var word = {
 		    		'text': $w.text(),
-
-		    		'xmin': parseFloat($w.attr('xmin')) / pagewidth,
-		    		'ymin': parseFloat($w.attr('ymin')) / pageheight,
-
-		    		'xmax': parseFloat($w.attr('xmax')) / pagewidth,
-		    		'ymax': parseFloat($w.attr('ymax')) / pageheight
+		    		'xmin': xmin,
+		    		'ymin': ymin,
+		    		'xmax': xmax,
+		    		'ymax': ymax,
+		    		'xcenter': xcenter,
+		    		'ycenter': ycenter
 		    	};
 
 		    	page['words'].push(word);
