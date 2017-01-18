@@ -154,12 +154,12 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
         var c = new Chain(data, self.context);
         var pagenum = self.context['pagenum'];
 
-        rows.forEach(function(row) {
+        return Q.all(rows.map(function(row) {
 
             var cells = [];
             var curcellxmin = rowxmin;
 
-            config.columns.forEach(function(column) {
+            return Q.all(config.columns.map(function(column) {
 
                 var cellxmax = column['width']*rowwidth + curcellxmin;
 
@@ -197,11 +197,61 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                 cells.push(cell);
                 curcellxmin = cellxmax;
 
+            }))
+            .then(function() {
+                row['cells'] = cells;
             });
 
-            row['cells'] = cells;
+        }));
 
-        });
+        // rows.forEach(function(row) {
+
+        //     var cells = [];
+        //     var curcellxmin = rowxmin;
+
+        //     config.columns.forEach(function(column) {
+
+        //         var cellxmax = column['width']*rowwidth + curcellxmin;
+
+        //         var cell = {
+        //             'name': column['name'],
+        //             'ymin': row['ymin'],
+        //             'xmin': curcellxmin,
+        //             'xmax': cellxmax,
+        //             'ymax': row['ymax']
+        //         };
+
+        //         switch (column['value']) {
+
+        //             case 'graylevel':
+        //                 cell['text'] = c.getPage(pagenum).cropGrayLevel({
+        //                     'filepath': self.filepath,
+        //                     'tmpdir': self.tempdirpath,
+        //                     'xmin': cell['xmin'],
+        //                     'ymin': cell['ymin'],
+        //                     'xmax': cell['xmax'],
+        //                     'ymax': cell['ymax']
+        //                 }).done() > 0.4 ? 'N/A' : 'N';
+        //                 break;
+
+        //             default:
+        //                 cell['text'] = c.getPage(pagenum).getWords().inside({
+        //                     'xmin': cell['xmin'],
+        //                     'ymin': cell['ymin'],
+        //                     'xmax': cell['xmax'],
+        //                     'ymax': cell['ymax']
+        //                 }).concatTexts().getText().done();
+
+        //         }
+
+        //         cells.push(cell);
+        //         curcellxmin = cellxmax;
+
+        //     });
+
+        //     row['cells'] = cells;
+
+        // });
 
     });
 
@@ -229,7 +279,7 @@ DocTable.prototype._defineTableData = function(tablemeta, config, docdata) {
             });
             idx++;
         });
-    })
+    });
 
     return p
     .then(function() {
