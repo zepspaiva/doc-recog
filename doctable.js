@@ -187,6 +187,10 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                         cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : 'N';
                         break;
 
+                    case 'default':
+                        cell['text'] = column['default'];
+                        break;
+
                     default:
                         cell['text'] = c.getPage(pagenum).getWords().inside({
                             'xmin': cell['xmin'],

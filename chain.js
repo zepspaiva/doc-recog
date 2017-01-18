@@ -674,16 +674,13 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 			var cropheight = ymax - ymin;
 
 			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
-
 			im.convert(cropgraylevelparams, function(err, stdout) {
 				if (err) { return cb(err); }
-
 				try {
 					cb(null, parseFloat(stdout.replace(/\"/, '')));
 				} catch (err) {
 					cb(err);
 				}
-
 			});
 
 		};
