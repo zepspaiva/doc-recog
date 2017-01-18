@@ -174,14 +174,17 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                 switch (column['value']) {
 
                     case 'graylevel':
-                        cell['text'] = c.getPage(pagenum).cropGrayLevel({
+                        var graylevel_navalue = column['navalue'] ? column['navalue'] : 0.4;
+                        var graylevel_calcvalue = c.getPage(pagenum).cropGrayLevel({
                             'filepath': self.filepath,
                             'tmpdir': self.tempdirpath,
                             'xmin': cell['xmin'],
                             'ymin': cell['ymin'],
                             'xmax': cell['xmax'],
                             'ymax': cell['ymax']
-                        }).done() > 0.4 ? 'N/A' : 'N';
+                        }).done();
+                        console.log('GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
+                        cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : 'N';
                         break;
 
                     default:
