@@ -102,10 +102,13 @@ exports.tag = function(templatebasepath, filepath, params, binpath, tmppath) {
 		.then(function(templateref) {
 			if (DEBUG) console.log('Generated tags', JSON.stringify(templateref));
 			return doctag.print(filepath, templateref)
-			.then(function(newfilepath) {
-				if (DEBUG) console.log('Printed tags', newfilepath);
+			.then(function(tagresult) {
+				if (DEBUG) console.log('Printed tags result', tagresult);
 				fs.removeSync(tempfolderpath);
-				return { 'result': templateref, 'newfilepath': newfilepath };
+
+				if (!tagresult) return { 'result': templateref, 'newfilepath': filepath };
+
+				return { 'result': tagresult['taginfo'], 'newfilepath': tagresult['newpdffilepath'] };
 			});
 		});
 

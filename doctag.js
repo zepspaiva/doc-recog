@@ -17,6 +17,7 @@ DocTag.prototype.print = function(filepath, templateref) {
 	var p = Q();
 
 	var tags = templateref['tags'];
+	var tagresult = null;
 
 	if (tags)
 		p = p
@@ -29,8 +30,8 @@ DocTag.prototype.print = function(filepath, templateref) {
 
 						case 'qr':
 							return self._qr(filepath, tag)
-							.then(function(newfilepath) {
-								filepath = newfilepath;
+							.then(function(tagresult_) {
+								tagresult = tagresult_;
 							})
 							break;
 
@@ -46,7 +47,7 @@ DocTag.prototype.print = function(filepath, templateref) {
 
 	return p
 	.then(function() {
-		return filepath;
+		return tagresult;
 	});
 
 };
@@ -62,6 +63,8 @@ DocTag.prototype._qr = function(filepath, tag) {
 	var qrpdffilepath = newfilepathbase + '_qr.pdf';
 	var qr2pdffilepath = newfilepathbase + '_qr2.pdf';
 	var newpdffilepath = newfilepathbase + '.pdf';
+
+	var taginfo = {};
 
 	return p
 
@@ -84,8 +87,14 @@ DocTag.prototype._qr = function(filepath, tag) {
 	.then(function(value) {
 		var size = tag['size'] || 45;
 		var scale = size/(.4*value.length);
+
 		scale = scale > 1.7 ? 1.7 : scale;
 		var epscontent = fs.readFileSync(qrepsfilepath, 'utf8');
+
+		taginfo['size'] = size;
+		taginfo['scale'] = scale;
+		taginfo['content'] = epscontent;
+
 		fs.writeFileSync(qrepsfilepath, epscontent.replace('%%BoundingBox: 0 0 243 243', ['%%BoundingBox: 0 0 ', size, size].join(' ')).replace('9 9 scale', [scale, scale, 'scale'].join(' ')));
 	})
 
@@ -106,8 +115,12 @@ DocTag.prototype._qr = function(filepath, tag) {
 		x = x*570;
 		y = 760 - y*760;
 
+		taginfo['x'] = x;
+		taginfo['y'] = y;
+
 		if (result.exitCode) throw new Error('ps2pdf exited with code ' + result.exitCode);
 		return exec([path.join(self.binpath, 'gs'), '-sDEVICE=pdfwrite', '-o', qr2pdffilepath, '-dPDFSETTINGS=/prepress', '-c', '"<</PageOffset [', x, ' ', y, ']>> setpagedevice"', '-f', qrpdffilepath].join(' '));
+
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('gs exited with code ' + result.exitCode);
@@ -120,7 +133,10 @@ DocTag.prototype._qr = function(filepath, tag) {
 		fs.unlink(qrpdffilepath);
 		fs.unlink(qr2pdffilepath);
 
-		return newpdffilepath;
+		return {
+			'newpdffilepath': newpdffilepath,
+			'taginfo': taginfo
+		};
 	});
 
 };
