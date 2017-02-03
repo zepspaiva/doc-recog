@@ -62,6 +62,8 @@ DocTag.prototype._qr = function(filepath, tag) {
 	var qrepsfilepath = newfilepathbase + '.eps';
 	var qrpdffilepath = newfilepathbase + '_qr.pdf';
 	var qr2pdffilepath = newfilepathbase + '_qr2.pdf';
+	var qr2pngfilepath = newfilepathbase + '_qr2.png';
+	var qr2trimmedpngfilepath = newfilepathbase + '_qr2_trim.png';
 	var newpdffilepath = newfilepathbase + '.pdf';
 
 	var taginfo = {};
@@ -72,6 +74,8 @@ DocTag.prototype._qr = function(filepath, tag) {
 	.then(function() {
 		var value = tag['value'];
 		var qr_eps = qr.image(value, { type: 'eps' });
+
+		taginfo['value'] = value;
 
 		return Q.nfcall(function(qrepsfilepath, qr_eps, callback) {
 			qr_eps.pipe(fs.createWriteStream(qrepsfilepath))
@@ -90,10 +94,6 @@ DocTag.prototype._qr = function(filepath, tag) {
 
 		scale = scale > 1.7 ? 1.7 : scale;
 		var epscontent = fs.readFileSync(qrepsfilepath, 'utf8');
-
-		taginfo['size'] = size;
-		taginfo['scale'] = scale;
-		taginfo['content'] = epscontent;
 
 		fs.writeFileSync(qrepsfilepath, epscontent.replace('%%BoundingBox: 0 0 243 243', ['%%BoundingBox: 0 0 ', size, size].join(' ')).replace('9 9 scale', [scale, scale, 'scale'].join(' ')));
 	})
@@ -115,9 +115,6 @@ DocTag.prototype._qr = function(filepath, tag) {
 		x = x*570;
 		y = 760 - y*760;
 
-		taginfo['x'] = x;
-		taginfo['y'] = y;
-
 		if (result.exitCode) throw new Error('ps2pdf exited with code ' + result.exitCode);
 		return exec([path.join(self.binpath, 'gs'), '-sDEVICE=pdfwrite', '-o', qr2pdffilepath, '-dPDFSETTINGS=/prepress', '-c', '"<</PageOffset [', x, ' ', y, ']>> setpagedevice"', '-f', qrpdffilepath].join(' '));
 
@@ -128,10 +125,36 @@ DocTag.prototype._qr = function(filepath, tag) {
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('pdftk exited with code ' + result.exitCode);
+		return exec([path.join(self.binpath, 'convert'), qr2pdffilepath, qr2pngfilepath].join(' '))
+	})
+	.then(function(result) {
+		if (result.exitCode) throw new Error('convert exited with code ' + result.exitCode);
+		return exec([path.join(self.binpath, 'convert'), qr2pngfilepath, '-trim', qr2trimmedpngfilepath].join(' '))
+	})
+	.then(function(result) {
+		if (result.exitCode) throw new Error('convert exited with code ' + result.exitCode);
+		return exec([path.join(self.binpath, 'identify'), qr2trimmedpngfilepath].join(' '))	
+	})
+	.then(function(result) {
+		var regex = /(\d+)x(\d+)\s(\d+)x(\d+)\+(\d+)\+(\d+)/;
+		if (!regex.test(result.stdout)) throw new Error('unexpected response from identify ' + result.stdout);
+		var valuesr = regex.exec(result.stdout);
+		if (valuesr.length < 7) throw new Error('unexpected response from identify ' + result.stdout);
+
+		taginfo['xmin'] = parseFloat(valuesr[5])/parseFloat(valuesr[3]);
+		taginfo['ymin'] = parseFloat(valuesr[6])/parseFloat(valuesr[4]);
+
+		taginfo['xmax'] = (parseFloat(valuesr[1]) + parseFloat(valuesr[5]))/parseFloat(valuesr[3]);
+		taginfo['ymax'] = (parseFloat(valuesr[2]) + parseFloat(valuesr[6]))/parseFloat(valuesr[4]);
+
+	})
+	.then(function() {
 
 		fs.unlink(qrepsfilepath);
 		fs.unlink(qrpdffilepath);
 		fs.unlink(qr2pdffilepath);
+		fs.unlink(qr2pngfilepath);
+		fs.unlink(qr2trimmedpngfilepath);
 
 		return {
 			'newpdffilepath': newpdffilepath,
