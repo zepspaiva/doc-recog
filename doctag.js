@@ -107,7 +107,7 @@ DocTag.prototype._qr = function(filepath, tag) {
 
 	// Get original PDF width and height
 	.then(function() {
-		return exec(['pdfinfo', filepath].join(' '));
+		return exec([path.join(self.binpath, 'pdfinfo'), filepath].join(' '));
 	})
 	.then(function(result) {
 
