@@ -125,15 +125,15 @@ DocTag.prototype._qr = function(filepath, tag) {
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('pdftk exited with code ' + result.exitCode);
-		return exec([path.join(self.binpath, 'convert'), qr2pdffilepath, qr2pngfilepath].join(' '))
+		return exec(['convert', qr2pdffilepath, qr2pngfilepath].join(' '))
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('convert exited with code ' + result.exitCode);
-		return exec([path.join(self.binpath, 'convert'), qr2pngfilepath, '-trim', qr2trimmedpngfilepath].join(' '))
+		return exec(['convert', qr2pngfilepath, '-trim', qr2trimmedpngfilepath].join(' '))
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('convert exited with code ' + result.exitCode);
-		return exec([path.join(self.binpath, 'identify'), qr2trimmedpngfilepath].join(' '))	
+		return exec(['identify', qr2trimmedpngfilepath].join(' '))	
 	})
 	.then(function(result) {
 		var regex = /(\d+)x(\d+)\s(\d+)x(\d+)\+(\d+)\+(\d+)/;
