@@ -321,6 +321,9 @@ var concatTextsFunc = function(data, args, last, context) {
 	var ymax = -1;
 	var text = '';
 
+	var addlinebreaks = !args.length ? true : args[0].addlinebreaks;
+	var spacer = !args.length ? ' ' : args[0].spacer == null ? ' ' : args[0].spacer;
+
 	if (!Array.isArray(last)) last = [last];
 
 	last.sort(function(a, b) {
@@ -349,9 +352,9 @@ var concatTextsFunc = function(data, args, last, context) {
 		xmax = xmax == -1 ? word['xmax'] : word['xmax'] > xmax ? word['xmax'] : xmax;
 		ymax = ymax == -1 ? word['ymax'] : word['ymax'] > ymax ? word['ymax'] : ymax;
 		
-		if (lastword && lastword['ymax'] < word['ymin']) text += '\n';
+		if (addlinebreaks &&lastword && lastword['ymax'] < word['ymin']) text += '\n';
 
-		text = text ? [text, word['text']].join(' ') : word['text'];
+		text = text ? [text, word['text']].join(spacer) : word['text'];
 		lastword = word;
 	});
 
@@ -367,6 +370,13 @@ var concatTextsFunc = function(data, args, last, context) {
 		'xcenter': xcenter,
 		'ycenter': ycenter
 	};
+
+}
+
+var removeLineBreaksFunc = function(data, args, last, context) {
+
+	last.text = last.text.replace(/\n/g, '');
+	return last;
 
 }
 
@@ -802,6 +812,7 @@ Chain.methods({
 	allTexts: allTextsFunc,
 	sameLineTexts: sameLineTextsFunc,
 	concatTexts: concatTextsFunc,
+	removeLineBreaks: removeLineBreaksFunc,
 
 	cropGrayLevel: cropGrayLevelFunc,
 
