@@ -184,7 +184,7 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                             'ymax': cell['ymax']
                         }).done();
                         console.log('GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
-                        cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : '';
+                        cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : ' ';
                         break;
 
                     case 'default':
