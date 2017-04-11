@@ -244,7 +244,7 @@ var anyTextFunc = function(data, args, last, context) {
 	while (!found && i < last.length) {
 		var word = last[i++];
 		var text = word['text'];
-		found = text === value ? word : false;
+		found = text.match(value) ? word : false;
 	}
 
 	return found;
