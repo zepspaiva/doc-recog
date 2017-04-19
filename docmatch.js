@@ -89,6 +89,9 @@ DocMatch.prototype._templateMatch = function(docdata, template, context) {
 							return new DocQuery(docdata, query, context).run();
 						})
 						.then(function(value) {
+
+							if (DEBUG) if (!value) console.log(template['type'], query, value);
+
 							templatematch = templatematch && value;
 						});
 

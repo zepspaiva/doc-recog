@@ -47,6 +47,13 @@ DocData.prototype._prepare = function() {
 			});
 			break;
 
+		case '.opdf':
+			p = p
+			.then(function() {
+				return self._readPDF();
+			});
+			break;
+
 		default:
 			throw new Error('Unknown filetype ' + self.filetype);
 
