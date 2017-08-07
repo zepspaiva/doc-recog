@@ -287,6 +287,7 @@ DocMatch.prototype.match = function(docdata) {
 				if (templatematch) {
 					templatesmatches.push({
 						'name': templatematch['name'],
+						'fullname': templatematch['fullname'],
 						'type': templatematch['type'],
 						'template': templatematch,
 						'context': context

@@ -373,6 +373,26 @@ var concatTextsFunc = function(data, args, last, context) {
 
 }
 
+var paddingFunc = function(data, args, last, context) {
+
+	if (!args || !args.length) return last;
+
+	var padding = args[0];
+
+	var xmin = last['xmin'];
+	var ymin = last['ymin'];
+	var xmax = last['xmax'];
+	var ymax = last['ymax'];
+	
+	last['xmin'] = xmin - xmin*padding;
+	last['ymin'] = ymin - ymin*padding;
+	last['xmax'] = xmax + xmax*padding;
+	last['ymax'] = ymax + ymax*padding;
+
+	return last;
+
+}
+
 var removeLineBreaksFunc = function(data, args, last, context) {
 
 	last.text = last.text.replace(/\n/g, '');
@@ -812,6 +832,7 @@ Chain.methods({
 	allTexts: allTextsFunc,
 	sameLineTexts: sameLineTextsFunc,
 	concatTexts: concatTextsFunc,
+	padding: paddingFunc,
 	removeLineBreaks: removeLineBreaksFunc,
 
 	cropGrayLevel: cropGrayLevelFunc,

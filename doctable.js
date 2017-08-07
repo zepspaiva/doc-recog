@@ -70,6 +70,8 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
         var pagenum = self.context['pagenum'];
         var dataarea = tablemeta['dataarea'];
 
+        console.log('dataarea', dataarea);
+
         var markers = c.getPage(pagenum).getWords().inside({
             'xmin': dataarea['xmin'],
             'ymin': dataarea['ymin'],
@@ -320,6 +322,7 @@ DocTable.prototype.run = function() {
             })
             .then(function(value) {
                 tablemeta['header'] = value;
+                console.log('HEADER', value);
             });
 
         if (config.base)

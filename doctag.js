@@ -151,6 +151,7 @@ DocTag.prototype._qr = function(filepath, tag) {
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('gs exited with code ' + result.exitCode);
+		console.log([path.join(self.binpath, 'pdftk'), filepath, 'stamp', qr2pdffilepath, 'output', newpdffilepath].join(' '));
 		return exec([path.join(self.binpath, 'pdftk'), filepath, 'stamp', qr2pdffilepath, 'output', newpdffilepath].join(' '));
 	})
 	.then(function(result) {
