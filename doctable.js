@@ -13,7 +13,7 @@ function DocTable(filepath, docdata, config, context, tempdirpath) {
 
 };
 
-DocTable.prototype._defineTableDataArea = function(tabledata) {
+DocTable.prototype._defineTableDataArea = function(tabledata, docdata) {
 
     var self = this;
     var p = Q();
@@ -38,6 +38,18 @@ DocTable.prototype._defineTableDataArea = function(tabledata) {
         .then(function() {
             tabledataarea['ymax'] = tabledata.base['ymin'];
         });
+
+
+    p = p
+    .then(function() {
+        return docdata.getData();
+    })
+    .then(function(data) {
+        console.log('tabledataarea', tabledataarea);
+        var filledtablearea = new Chain(data).getPage(1).getWords().inside(tabledataarea).concatTexts().padding(0.0125).done();
+        if (filledtablearea && filledtablearea['ymax']) tabledataarea['ymax'] = filledtablearea['ymax'];
+        console.log('tabledataarea', tabledataarea);
+    });
 
     return p
     .then(function() {
@@ -176,7 +188,7 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                 switch (column['value']) {
 
                     case 'graylevel':
-                        var graylevel_navalue = column['navalue'] ? column['navalue'] : 0.4;
+                        var graylevel_navalue = column['navalue'] ? column['navalue'] : 0.65;
                         var graylevel_calcvalue = c.getPage(pagenum).cropGrayLevel({
                             'filepath': self.filepath,
                             'tmpdir': self.tempdirpath,
@@ -185,7 +197,7 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                             'xmax': cell['xmax'],
                             'ymax': cell['ymax']
                         }).done();
-                        console.log('GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
+                        console.log('>>GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
                         cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : ' ';
                         break;
 
@@ -337,7 +349,7 @@ DocTable.prototype.run = function() {
         // Define table's data area
         p = p
         .then(function() {
-            return self._defineTableDataArea(tablemeta)
+            return self._defineTableDataArea(tablemeta, docdata)
         })
         .then(function(value) {
             tablemeta['dataarea'] = value;

@@ -704,23 +704,30 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 			var cropheight = ymax - ymin;
 
 			var outputfilepath = params.pngfilepath + '-crop' + new Date().getTime() + '.png';
-			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-format', '"%[fx:u]"', outputfilepath];
+			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-colorspace', 'sRGB', '-background', 'red', '-alpha', 'remove', '-fill', 'black', '+opaque', 'red', '-fill', 'white', '-opaque', 'red', '-format', '"%[fx:w*h*mean]"' ,'info:'];
 
 			im.convert(cropgraylevelparams, function(err, stdout) {
 				if (err) { return cb(err); }
 
-				var redbackground = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-colorspace', 'sRGB', '-background', 'red', '-alpha', 'remove', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
-				im.convert(redbackground, function(err, stdout) {
-					if (err) { return cb(err); }
-					console.log('red stdout', parseFloat(stdout.replace(/\"/, '')));
+				console.log(stdout);
+				try {
+					cb(null, 1.0-parseFloat(stdout.replace(/\"/, ''))/(cropwidth*cropheight));
+				} catch (err) {
+					cb(err);
+				}
 
-					try {
-						cb(null, parseFloat(stdout.replace(/\"/, '')));
-					} catch (err) {
-						cb(err);
-					}
+				// var redbackground = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-colorspace', 'sRGB', '-background', 'red', '-alpha', 'remove', '-channel', 'BG', '-fx' ,'0', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
+				// im.convert(redbackground, function(err, stdout) {
+				// 	if (err) { return cb(err); }
+				// 	console.log('white stdout', parseFloat(stdout.replace(/\"/, '')));
 
-				});
+				// 	try {
+				// 		cb(null, parseFloat(stdout.replace(/\"/, '')));
+				// 	} catch (err) {
+				// 		cb(err);
+				// 	}
+
+				// });
 
 			});
 

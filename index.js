@@ -41,7 +41,7 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 		})
 		.then(function(templateref) {
 			if (DEBUG) console.log('Extracted data', templateref);
-			fs.removeSync(tempfolderpath);
+			//fs.removeSync(tempfolderpath);
 			return { 'result': templateref, 'newfilepath': filepath };
 		});
 
