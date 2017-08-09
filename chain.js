@@ -703,15 +703,39 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 			var cropwidth = xmax - xmin;
 			var cropheight = ymax - ymin;
 
-			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
+			var outputfilepath = params.pngfilepath + '-crop' + new Date().getTime() + '.png';
+			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-format', '"%[fx:u]"', outputfilepath];
+
 			im.convert(cropgraylevelparams, function(err, stdout) {
 				if (err) { return cb(err); }
-				try {
-					cb(null, parseFloat(stdout.replace(/\"/, '')));
-				} catch (err) {
-					cb(err);
-				}
+
+				var redbackground = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-colorspace', 'sRGB', '-background', 'red', '-alpha', 'remove', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
+				im.convert(redbackground, function(err, stdout) {
+					if (err) { return cb(err); }
+					console.log('red stdout', parseFloat(stdout.replace(/\"/, '')));
+
+					try {
+						cb(null, parseFloat(stdout.replace(/\"/, '')));
+					} catch (err) {
+						cb(err);
+					}
+
+				});
+
 			});
+
+			// var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
+			// im.convert(cropgraylevelparams, function(err, stdout) {
+			// 	if (err) { return cb(err); }
+
+			// 	console.log('stdout', stdout);
+
+			// 	try {
+			// 		cb(null, parseFloat(stdout.replace(/\"/, '')));
+			// 	} catch (err) {
+			// 		cb(err);
+			// 	}
+			// });
 
 		};
 
