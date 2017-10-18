@@ -700,49 +700,25 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 			var ymin = params.ymin * height;
 			var ymax = params.ymax * height;
 
-			var cropwidth = xmax - xmin;
-			var cropheight = ymax - ymin;
+			var cropwidth = Math.abs(xmax - xmin);
+			var cropheight = Math.abs(ymax - ymin);
 
 			var outputfilepath = params.pngfilepath + '-crop' + new Date().getTime() + '.png';
-			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-colorspace', 'sRGB', '-background', 'red', '-alpha', 'remove', '-fill', 'black', '+opaque', 'red', '-fill', 'white', '-opaque', 'red', '-format', '"%[fx:w*h*mean]"' ,'info:'];
+			var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth	 + 'x' + cropheight, xmin, ymin].join('+'), '-fuzz', '35%', '-alpha', 'off', '-fill', 'white', '-opaque', 'black' ,'-fuzz', '0%', '-transparent', 'white', '-fuzz', '0%', '-transparent', 'white', '-alpha', 'extract', '-format', '"%[fx:mean]"', 'info:'];
+
+			console.log('cropgraylevelparams', cropgraylevelparams);
 
 			im.convert(cropgraylevelparams, function(err, stdout) {
 				if (err) { return cb(err); }
 
 				console.log(stdout);
 				try {
-					cb(null, 1.0-parseFloat(stdout.replace(/\"/, ''))/(cropwidth*cropheight));
+					cb(null, parseFloat(stdout.replace(/\"/, '')));
 				} catch (err) {
 					cb(err);
 				}
 
-				// var redbackground = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-colorspace', 'sRGB', '-background', 'red', '-alpha', 'remove', '-channel', 'BG', '-fx' ,'0', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
-				// im.convert(redbackground, function(err, stdout) {
-				// 	if (err) { return cb(err); }
-				// 	console.log('white stdout', parseFloat(stdout.replace(/\"/, '')));
-
-				// 	try {
-				// 		cb(null, parseFloat(stdout.replace(/\"/, '')));
-				// 	} catch (err) {
-				// 		cb(err);
-				// 	}
-
-				// });
-
 			});
-
-			// var cropgraylevelparams = [params.pngfilepath, '-crop', [cropwidth + 'x' + cropheight, xmin, ymin].join('+'), '-filter', 'box', '-resize', '1x1!', '-format', '"%[fx:u]"', 'info:'];
-			// im.convert(cropgraylevelparams, function(err, stdout) {
-			// 	if (err) { return cb(err); }
-
-			// 	console.log('stdout', stdout);
-
-			// 	try {
-			// 		cb(null, parseFloat(stdout.replace(/\"/, '')));
-			// 	} catch (err) {
-			// 		cb(err);
-			// 	}
-			// });
 
 		};
 

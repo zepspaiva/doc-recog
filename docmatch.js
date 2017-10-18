@@ -186,6 +186,7 @@ DocMatch.prototype._extractionData = function(filepath, docdata, template, conte
 						.then(function(value) {
 
 							if (DEBUG) console.log(value);
+							if (!value) return console.log('Table not found.');
 
 							var tabledata = value['data'];
 							for (k in tabledata) {

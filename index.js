@@ -1,11 +1,18 @@
 var path = require('path');
-var fs = require('fs-extra')
+var fs = require('fs-extra');
+
+var im = require('imagemagick');
 
 var DocData = require('./docdata.js');
 var DocMatch = require('./docmatch.js');
 var DocTag = require('./doctag.js');
 
 var DEBUG = false;
+
+im.convert(['--version'], function(err, stdout) {
+	if (err) { return cb(err); }
+	console.log('IM version', stdout);
+});
 
 exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 
@@ -41,7 +48,7 @@ exports.recog = function(templatebasepath, filepath, params, binpath, tmppath) {
 		})
 		.then(function(templateref) {
 			if (DEBUG) console.log('Extracted data', templateref);
-			//fs.removeSync(tempfolderpath);
+			fs.removeSync(tempfolderpath);
 			return { 'result': templateref, 'newfilepath': filepath };
 		});
 

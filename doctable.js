@@ -47,7 +47,10 @@ DocTable.prototype._defineTableDataArea = function(tabledata, docdata) {
     .then(function(data) {
         console.log('tabledataarea', tabledataarea);
         var filledtablearea = new Chain(data).getPage(1).getWords().inside(tabledataarea).concatTexts().padding(0.0125).done();
-        if (filledtablearea && filledtablearea['ymax']) tabledataarea['ymax'] = filledtablearea['ymax'];
+        if (filledtablearea && filledtablearea['ymax']) {
+            if ((tabledataarea['ymax'] - filledtablearea['ymax']) > 0.2*(tabledataarea['ymax']-tabledataarea['ymin']))
+                tabledataarea['ymax'] = filledtablearea['ymax']*1.0125;
+        }
         console.log('tabledataarea', tabledataarea);
     });
 
@@ -168,62 +171,65 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
         var c = new Chain(data, self.context);
         var pagenum = self.context['pagenum'];
 
-        return Q.all(rows.map(function(row) {
+        return rows.reduce(function(p, row) {
+            return p.then(function() {
 
-            var cells = [];
-            var curcellxmin = rowxmin;
+                var cells = [];
+                var curcellxmin = rowxmin;
 
-            return Q.all(config.columns.map(function(column) {
+                return Q.all(config.columns.map(function(column) {
 
-                var cellxmax = column['width']*rowwidth + curcellxmin;
+                    var cellxmax = column['width']*rowwidth + curcellxmin;
 
-                var cell = {
-                    'name': column['name'],
-                    'ymin': row['ymin'],
-                    'xmin': curcellxmin,
-                    'xmax': cellxmax,
-                    'ymax': row['ymax']
-                };
+                    var cell = {
+                        'name': column['name'],
+                        'ymin': row['ymin'],
+                        'xmin': curcellxmin,
+                        'xmax': cellxmax,
+                        'ymax': row['ymax']
+                    };
 
-                switch (column['value']) {
+                    switch (column['value']) {
 
-                    case 'graylevel':
-                        var graylevel_navalue = column['navalue'] ? column['navalue'] : 0.65;
-                        var graylevel_calcvalue = c.getPage(pagenum).cropGrayLevel({
-                            'filepath': self.filepath,
-                            'tmpdir': self.tempdirpath,
-                            'xmin': cell['xmin'],
-                            'ymin': cell['ymin'],
-                            'xmax': cell['xmax'],
-                            'ymax': cell['ymax']
-                        }).done();
-                        console.log('>>GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
-                        cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : ' ';
-                        break;
+                        case 'graylevel':
+                            var graylevel_navalue = column['navalue'] ? column['navalue'] : 0.3;
+                            var graylevel_calcvalue = c.getPage(pagenum).cropGrayLevel({
+                                'filepath': self.filepath,
+                                'tmpdir': self.tempdirpath,
+                                'xmin': cell['xmin'],
+                                'ymin': cell['ymin'],
+                                'xmax': cell['xmax'],
+                                'ymax': cell['ymax']
+                            }).done();
+                            console.log('>>>GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
+                            cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : ' ';
+                            break;
 
-                    case 'default':
-                        cell['text'] = column['default'];
-                        break;
+                        case 'default':
+                            cell['text'] = column['default'];
+                            break;
 
-                    default:
-                        cell['text'] = c.getPage(pagenum).getWords().inside({
-                            'xmin': cell['xmin'],
-                            'ymin': cell['ymin'],
-                            'xmax': cell['xmax'],
-                            'ymax': cell['ymax']
-                        }).concatTexts().getText().done();
+                        default:
+                            cell['text'] = c.getPage(pagenum).getWords().inside({
+                                'xmin': cell['xmin'],
+                                'ymin': cell['ymin'],
+                                'xmax': cell['xmax'],
+                                'ymax': cell['ymax']
+                            }).concatTexts().getText().done();
 
-                }
+                    }
 
-                cells.push(cell);
-                curcellxmin = cellxmax;
+                    cells.push(cell);
+                    curcellxmin = cellxmax;
 
-            }))
-            .then(function() {
-                row['cells'] = cells;
+                }))
+                .then(function() {
+                    row['cells'] = cells;
+                });
+
             });
+        }, Q());
 
-        }));
 
         // rows.forEach(function(row) {
 
@@ -333,8 +339,8 @@ DocTable.prototype.run = function() {
                 return new DocQuery(docdata, config.header, context).run();
             })
             .then(function(value) {
+                if (!value) throw new Error('Table header not found.');
                 tablemeta['header'] = value;
-                console.log('HEADER', value);
             });
 
         if (config.base)
@@ -343,6 +349,7 @@ DocTable.prototype.run = function() {
                 return new DocQuery(docdata, config.base, context).run();
             })
             .then(function(value) {
+                if (!value) throw new Error('Table base not found.');
                 tablemeta['base'] = value;
             });
 
@@ -384,13 +391,14 @@ DocTable.prototype.run = function() {
 
         return p
         .then(function() {
+            console.log('tabledata', tabledata);
             return tabledata;
         });
         
     })
     .catch(function(err) {
     	console.log(err.stack);
-    	throw err;
+    	return null;
     });
 
 }
