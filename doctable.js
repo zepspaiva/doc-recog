@@ -39,19 +39,22 @@ DocTable.prototype._defineTableDataArea = function(tabledata, docdata) {
             tabledataarea['ymax'] = tabledata.base['ymin'];
         });
 
-
     p = p
     .then(function() {
         return docdata.getData();
     })
     .then(function(data) {
-        console.log('tabledataarea', tabledataarea);
-        var filledtablearea = new Chain(data).getPage(1).getWords().inside(tabledataarea).concatTexts().padding(0.0125).done();
-        if (filledtablearea && filledtablearea['ymax']) {
-            if ((tabledataarea['ymax'] - filledtablearea['ymax']) > 0.2*(tabledataarea['ymax']-tabledataarea['ymin']))
-                tabledataarea['ymax'] = filledtablearea['ymax']*1.0125;
+        var wordsinsidetablearea = new Chain(data).getPage(1).getWords().inside(tabledataarea).done();
+        if (wordsinsidetablearea && wordsinsidetablearea.length) {
+
+            var filledtablearea = new Chain(data).getPage(1).getWords().inside(tabledataarea).concatTexts().padding(0.0125).done();
+            
+            if (filledtablearea && filledtablearea['ymax'] != -1) {
+                if ((tabledataarea['ymax'] - filledtablearea['ymax']) > 0.2*(tabledataarea['ymax']-tabledataarea['ymin']))
+                    tabledataarea['ymax'] = filledtablearea['ymax']*1.0125;
+            }
+
         }
-        console.log('tabledataarea', tabledataarea);
     });
 
     return p
@@ -81,11 +84,11 @@ DocTable.prototype._defineTableRows = function(tablemeta, config, docdata) {
     })
     .then(function(data) {
 
+        var p = Q();
+
         var c = new Chain(data, self.context);
         var pagenum = self.context['pagenum'];
         var dataarea = tablemeta['dataarea'];
-
-        console.log('dataarea', dataarea);
 
         var markers = c.getPage(pagenum).getWords().inside({
             'xmin': dataarea['xmin'],
@@ -201,7 +204,6 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                                 'xmax': cell['xmax'],
                                 'ymax': cell['ymax']
                             }).done();
-                            console.log('>>>GrayLevel', cell, graylevel_calcvalue, graylevel_navalue);
                             cell['text'] = graylevel_calcvalue > graylevel_navalue ? 'N/A' : ' ';
                             break;
 
@@ -216,6 +218,11 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                                 'xmax': cell['xmax'],
                                 'ymax': cell['ymax']
                             }).concatTexts().getText().done();
+
+                            if (column['contextvar']) {
+                                self.context[column['contextvar']] = self.context[column['contextvar']] || [];
+                                self.context[column['contextvar']].push(cell['text'])
+                            }
 
                     }
 
@@ -391,7 +398,6 @@ DocTable.prototype.run = function() {
 
         return p
         .then(function() {
-            console.log('tabledata', tabledata);
             return tabledata;
         });
         

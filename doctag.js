@@ -127,7 +127,7 @@ DocTag.prototype._qr = function(filepath, tag) {
 
 	// Print EPS on PDF
 	.then(function() {
-		return exec(['ps2pdf', '-dDEVICEWIDTHPOINTS=' + pageinfo['width'], '-dDEVICEHEIGHTPOINTS=' + pageinfo['height'], qrepsfilepath, qrpdffilepath].join(' '));
+		return exec([path.join(self.binpath, 'ps2pdf'), '-dDEVICEWIDTHPOINTS=' + pageinfo['width'], '-dDEVICEHEIGHTPOINTS=' + pageinfo['height'], qrepsfilepath, qrpdffilepath].join(' '));
 	})
 	.then(function(result) {
 
@@ -156,15 +156,16 @@ DocTag.prototype._qr = function(filepath, tag) {
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('pdftk exited with code ' + result.exitCode);
-		return exec(['convert', qr2pdffilepath, qr2pngfilepath].join(' '))
+		return exec([path.join(self.binpath, 'gs'), '-sDEVICE=pngalpha', '-o', qr2pngfilepath, ['-r', '200'].join(''), qr2pdffilepath].join(' '))
+		// return exec([path.join(self.binpath, 'convert'), qr2pdffilepath, qr2pngfilepath].join(' '))
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('convert exited with code ' + result.exitCode);
-		return exec(['convert', qr2pngfilepath, '-trim', qr2trimmedpngfilepath].join(' '))
+		return exec([path.join(self.binpath, 'convert'), qr2pngfilepath, '-trim', qr2trimmedpngfilepath].join(' '))
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('convert exited with code ' + result.exitCode);
-		return exec(['identify', qr2trimmedpngfilepath].join(' '))	
+		return exec([path.join(self.binpath, 'identify'), qr2trimmedpngfilepath].join(' '))	
 	})
 	.then(function(result) {
 		if (result.exitCode) throw new Error('identify exited with code ' + result.exitCode);

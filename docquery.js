@@ -2,15 +2,16 @@ var Q = require('q');
 
 var Chain = require('./chain.js');
 
-function DocQuery(docdata, query, context) {
+function DocQuery(docdata, query, context, extractdata) {
 
     this.docdata = docdata;
     this.query = query;
     this.context = context || {};
+    this.extractdata = extractdata || {}
 
 };
 
-DocQuery.prototype._funcWrapper = function(expr, data) {
+DocQuery.prototype._funcWrapper = function(expr, data, extractdata) {
     
     var body = expr;
     var f = null;
@@ -41,7 +42,7 @@ DocQuery.prototype.run = function() {
 	            
 	            if (!data) data = {};
 
-	            var func = self._funcWrapper(expr, data);
+	            var func = self._funcWrapper(expr, data, self.extractdata);
 	            var c = new Chain(data, self.context);
 	            
 	            var value = func(value, data, expr, c);

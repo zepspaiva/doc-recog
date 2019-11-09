@@ -4,6 +4,7 @@ var path = require('path');
 var im = require('imagemagick');
 var uuid = require('uuid');
 var deasync = require("deasync");
+var exec = require('child-process-promise').exec;
 
 function Chain(d, c) {
 	
@@ -269,6 +270,24 @@ var allTextsFunc = function(data, args, last, context) {
 
 }
 
+var allTextsContainsFunc = function(data, args, last, context) {
+
+	var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
+
+	var value = args[0];
+	var found = [];
+	var i = 0;
+
+	while (i < words.length) {
+		var word = words[i++];
+		var text = word['text'];
+		if (text && text.indexOf(value) > -1) found.push(word);
+	}
+
+	return found;
+
+}
+
 var sameLineTextsFunc = function(data, args, last, context) {
 
 	var foundwords = [];
@@ -389,6 +408,30 @@ var paddingFunc = function(data, args, last, context) {
 	last['xmax'] = xmax + xmax*padding;
 	last['ymax'] = ymax + ymax*padding;
 
+	return last;
+
+}
+
+var xminFunc = function(data, args, last, context) {
+
+	if (!args || !args.length) return last;
+
+	var newxmin = args[0];
+
+	last['xmin'] = newxmin;
+	
+	return last;
+
+}
+
+var xmaxFunc = function(data, args, last, context) {
+
+	if (!args || !args.length) return last;
+
+	var newxmax = args[0];
+
+	last['xmax'] = newxmax;
+	
 	return last;
 
 }
@@ -724,11 +767,9 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 
 		var genPngFn = function(params, cb) {
 
-			var pdftopngparams = [params.filepath + '[' + params.pagenum + ']', '-density', '72', params.pngfilepath];
+			return exec([path.join('/var/task', 'gs'), '-sDEVICE=pngalpha', '-o', params.pngfilepath, ['-r', '72'].join(''), params.filepath].join(' '))
+			.then(function() {
 
-			im.convert(pdftopngparams, function(err, stdout) {
-				if (err) { return cb(err); }
-				
 				im.identify(params.pngfilepath, function(err, features) {
 					if (err) { return cb(err); }
 
@@ -736,7 +777,21 @@ var cropGrayLevelFunc = function(data, args, last, context) {
 
 				});
 
-			});
+			})
+
+			// var pdftopngparams = [params.filepath + '[' + params.pagenum + ']', '-density', '72', params.pngfilepath];
+
+			// im.convert(pdftopngparams, function(err, stdout) {
+			// 	if (err) { return cb(err); }
+				
+			// 	im.identify(params.pngfilepath, function(err, features) {
+			// 		if (err) { return cb(err); }
+
+			// 		cb(null, features);
+
+			// 	});
+
+			// });
 
 		};
 
@@ -837,9 +892,12 @@ Chain.methods({
 	locate: locateFunc,
 	anyText: anyTextFunc,
 	allTexts: allTextsFunc,
+	allTextsContains: allTextsContainsFunc,
 	sameLineTexts: sameLineTextsFunc,
 	concatTexts: concatTextsFunc,
 	padding: paddingFunc,
+	xmin: xminFunc,
+	xmax: xmaxFunc,
 	removeLineBreaks: removeLineBreaksFunc,
 
 	cropGrayLevel: cropGrayLevelFunc,

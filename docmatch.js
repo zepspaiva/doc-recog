@@ -172,7 +172,7 @@ DocMatch.prototype._extractionData = function(filepath, docdata, template, conte
 					if (query)
 						p = p
 						.then(function() {
-							return new DocQuery(docdata, query, context).run();
+							return new DocQuery(docdata, query, context, data).run();
 						})
 						.then(function(value) {
 							data[name] = value;
