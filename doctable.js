@@ -212,12 +212,23 @@ DocTable.prototype._defineTableCells = function(tablemeta, config, docdata) {
                             break;
 
                         default:
-                            cell['text'] = c.getPage(pagenum).getWords().inside({
-                                'xmin': cell['xmin'],
-                                'ymin': cell['ymin'],
-                                'xmax': cell['xmax'],
-                                'ymax': cell['ymax']
-                            }).concatTexts().getText().done();
+
+                            if (column['content'] == "startsInside") {
+                                cell['text'] = c.getPage(pagenum).getWords().startsInside({
+                                    'xmin': cell['xmin'],
+                                    'ymin': cell['ymin'],
+                                    'xmax': cell['xmax'],
+                                    'ymax': cell['ymax']
+                                }).concatTexts().getText().done();
+                            } else {
+                                cell['text'] = c.getPage(pagenum).getWords().inside({
+                                    'xmin': cell['xmin'],
+                                    'ymin': cell['ymin'],
+                                    'xmax': cell['xmax'],
+                                    'ymax': cell['ymax']
+                                }).concatTexts().getText().done();
+                            }
+
 
                             if (column['contextvar']) {
                                 self.context[column['contextvar']] = self.context[column['contextvar']] || [];

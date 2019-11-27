@@ -844,7 +844,56 @@ var insideFunc = function(data, args, last, context) {
 		return wxmin >= xmin &&
 			   wymin >= ymin &&
 			   wxmax <= xmax &&
-			   wymax <= ymax;	
+			   wymax <= ymax;
+	}
+
+	for (w in words) {
+		var word = words[w];
+		var wxmin = word['xmin'];
+		var wymin = word['ymin'];
+		var wxmax = word['xmax'];
+		var wymax = word['ymax'];
+
+		if (insidefn(wxmin, wymin, wxmax, wymax)) foundwords.push(word);
+	}
+
+	foundwords.sort(function(a, b) {
+		var aymin = a['ymin'];
+		var bymin = b['ymin'];
+
+		if (aymin < bymin)
+			return -1;
+		else if (aymin > bymin)
+			return 1;
+		else
+			return 0;
+	});
+
+	context['words'] = foundwords;
+	return foundwords;
+
+}
+
+var startsInsideFunc = function(data, args, last, context) {
+
+	if (!args.length) throw Chain.StopChainErr;
+
+	var area = args[0];
+
+	var xmin = area['xmin'];
+	var ymin = area['ymin'];
+	var xmax = area['xmax'];
+	var ymax = area['ymax'];
+	var pagenum = context['pagenum'];
+	var words = context['words'] ? context['words'] : new Chain(data).getPage(pagenum).done()['words'];
+
+	var foundwords = [];
+
+	var insidefn = function(wxmin, wymin, wxmax, wymax) {
+		return wxmin >= xmin &&
+			   wymin >= ymin &&
+			   wxmin <= xmax &&
+			   wymin <= ymax;
 	}
 
 	for (w in words) {
@@ -908,6 +957,7 @@ Chain.methods({
 	right: rightFunc,
 	rightfromleft: rightFromLeftFunc,
 	inside: insideFunc,
+	startsInside: startsInsideFunc,
 
 	first: firstFunc,
 
